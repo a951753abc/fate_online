@@ -1,9 +1,9 @@
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import { useSocketContext } from "../context/SocketContext.js";
 import { useGameState } from "../hooks/useGameState.js";
 import { MapView } from "../components/game/MapView.js";
 import { NightHud } from "../components/game/NightHud.js";
-import type { LocationId } from "../types/protocol.js";
+import type { LocationId, GameInitializedPayload } from "../types/protocol.js";
 
 // Adjacency data for valid move calculation (matches server mapData)
 const ADJACENCY: Record<string, readonly string[]> = {
@@ -46,8 +46,10 @@ function getValidMoves(current: LocationId): LocationId[] {
 
 export function GamePage() {
   const { code } = useParams<{ code: string }>();
+  const location = useLocation();
   const { socket } = useSocketContext();
-  const game = useGameState(socket);
+  const navGameInit = (location.state as { gameInit?: GameInitializedPayload } | null)?.gameInit;
+  const game = useGameState(socket, navGameInit);
 
   if (!socket) {
     return (

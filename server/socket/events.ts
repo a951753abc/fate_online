@@ -6,6 +6,7 @@ export const ClientEvents = Object.freeze({
   ROOM_SET_ROLE: "room:setRole",
   ROOM_START: "room:start",
   ROOM_KICK: "room:kick",
+  ROOM_REQUEST_STATE: "room:requestState",
   DICE_ROLL: "dice:roll",
   GAME_MOVE: "game:move",
 } as const);

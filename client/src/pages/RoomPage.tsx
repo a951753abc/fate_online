@@ -13,11 +13,18 @@ export function RoomPage() {
   const { roomState, playerId, error, pairing, setRole, startGame, leaveRoom, kickPlayer } =
     useRoom(socket);
 
-  // Navigate to game page when game initializes
+  // Request current room state on mount (state is lost during navigation)
+  useEffect(() => {
+    if (socket && !roomState) {
+      socket.emit("room:requestState");
+    }
+  }, [socket, roomState]);
+
+  // Navigate to game page when game initializes (pass data via nav state)
   useEffect(() => {
     if (!socket) return;
-    const onGameInit = () => {
-      navigate(`/game/${code}`);
+    const onGameInit = (data: unknown) => {
+      navigate(`/game/${code}`, { state: { gameInit: data } });
     };
     socket.on("game:initialized", onGameInit);
     return () => {

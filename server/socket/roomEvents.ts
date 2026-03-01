@@ -152,6 +152,17 @@ export function registerRoomEvents(io: Server, socket: Socket): void {
     engine.start();
   });
 
+  socket.on(ClientEvents.ROOM_REQUEST_STATE, async () => {
+    const code = await getPlayerRoom(playerId);
+    if (!code) return;
+
+    // Re-send playerId so the client can identify itself
+    emitRoomJoined(socket, { code, playerId });
+
+    const state = await getRoomState(code);
+    if (state) emitRoomState(io, code, state);
+  });
+
   socket.on(ClientEvents.ROOM_KICK, async (payload: KickPayload) => {
     const code = await getPlayerRoom(playerId);
     if (!code) return;

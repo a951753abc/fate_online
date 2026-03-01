@@ -29,10 +29,15 @@ export interface GameStateHook {
   readonly submitMove: (location: LocationId) => void;
 }
 
-export function useGameState(socket: Socket | null): GameStateHook {
-  const [gameData, setGameData] = useState<GameInitializedPayload | null>(null);
-  const [nightState, setNightState] = useState<NightStateView | null>(null);
-  const [positions, setPositions] = useState<readonly CharacterPositionView[]>([]);
+export function useGameState(
+  socket: Socket | null,
+  initialData?: GameInitializedPayload,
+): GameStateHook {
+  const [gameData, setGameData] = useState<GameInitializedPayload | null>(initialData ?? null);
+  const [nightState, setNightState] = useState<NightStateView | null>(initialData?.night ?? null);
+  const [positions, setPositions] = useState<readonly CharacterPositionView[]>(
+    initialData?.positions ?? [],
+  );
   const [occupations, setOccupations] = useState<OccupationsPayload["occupations"]>([]);
   const [encounters, setEncounters] = useState<readonly EncounterPayload[]>([]);
   const [nightReport, setNightReport] = useState<NightReportPayload | null>(null);
