@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSocketContext } from "../context/SocketContext.js";
 import { useRoom } from "../hooks/useRoom.js";
@@ -11,6 +12,18 @@ export function RoomPage() {
   const { socket } = useSocketContext();
   const { roomState, playerId, error, pairing, setRole, startGame, leaveRoom, kickPlayer } =
     useRoom(socket);
+
+  // Navigate to game page when game initializes
+  useEffect(() => {
+    if (!socket) return;
+    const onGameInit = () => {
+      navigate(`/game/${code}`);
+    };
+    socket.on("game:initialized", onGameInit);
+    return () => {
+      socket.off("game:initialized", onGameInit);
+    };
+  }, [socket, navigate, code]);
 
   const currentPlayer = roomState?.players.find((p) => p.id === playerId);
   const isHost = currentPlayer?.isHost ?? false;

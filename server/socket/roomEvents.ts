@@ -1,5 +1,5 @@
 import type { Server, Socket } from "socket.io";
-import { ClientEvents } from "./events.js";
+import { ClientEvents, ServerEvents } from "./events.js";
 import {
   emitRoomCreated,
   emitRoomJoined,
@@ -21,6 +21,16 @@ import {
 } from "../room/roomManager.js";
 import { assignRoles } from "../room/roleAssignment.js";
 import type { RoomJoinPayload, SetRolePayload, KickPayload } from "../shared/protocol.js";
+import { initializeGame } from "../game/gameStateManager.js";
+import { assignStartingPositions } from "../game/startingPositions.js";
+import {
+  buildGroupsFromPairing,
+  buildCharactersFromGroups,
+  buildGroupViews,
+  buildInitPayloadForPlayer,
+} from "../game/initializeGame.js";
+import { NightCycleEngine } from "../game/nightCycle.js";
+import { registerGame } from "../game/activeGames.js";
 
 // Track disconnect timers for reconnection grace period
 const disconnectTimers = new Map<string, NodeJS.Timeout>();
@@ -106,6 +116,40 @@ export function registerRoomEvents(io: Server, socket: Socket): void {
     const players = await getInternalPlayers(code);
     const pairing = assignRoles(players, state.maxGroups);
     emitRoomStarted(io, code, pairing);
+
+    // Phase 1: Initialize game state
+    const groups = buildGroupsFromPairing(pairing);
+    const startingPositions = assignStartingPositions(groups.length);
+    const characters = buildCharactersFromGroups(groups, startingPositions);
+    const gameState = await initializeGame(code, groups, characters);
+
+    // Build nickname map for group views
+    const nicknames = new Map<string, string>();
+    for (const p of players) {
+      nicknames.set(p.id, p.nickname);
+    }
+    const groupViews = buildGroupViews(groups, nicknames);
+
+    // Start night cycle
+    const engine = new NightCycleEngine(code, io);
+    registerGame(code, engine);
+
+    // Emit personalized game:initialized to each player
+    const sockets = await io.in(code).fetchSockets();
+    for (const s of sockets) {
+      const payload = buildInitPayloadForPlayer(
+        s.data.playerId,
+        groups,
+        characters,
+        groupViews,
+        gameState.night,
+      );
+      if (payload) {
+        s.emit(ServerEvents.GAME_INITIALIZED, payload);
+      }
+    }
+
+    engine.start();
   });
 
   socket.on(ClientEvents.ROOM_KICK, async (payload: KickPayload) => {
