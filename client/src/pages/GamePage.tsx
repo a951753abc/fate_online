@@ -80,9 +80,15 @@ export function GamePage() {
   }
 
   const myGroup = game.gameData.yourGroupIndex;
-  const partner = game.positions.find(
+  const partnerPos = game.positions.find(
     (p) => p.groupIndex === myGroup && p.characterId !== game.gameData!.yourCharacterId,
   );
+  const myGroupData = game.gameData.groups.find((g) => g.groupIndex === myGroup);
+  const partnerNickname = myGroupData
+    ? game.gameData.yourRole === "master"
+      ? myGroupData.servantNickname
+      : myGroupData.masterNickname
+    : undefined;
 
   const handleLocationClick = (id: LocationId) => {
     if (canMove && validMoves.includes(id)) {
@@ -137,9 +143,9 @@ export function GamePage() {
           <span>
             位置：<strong>{myLocation}</strong>
           </span>
-          {partner && (
+          {partnerPos && (
             <span>
-              搭檔：<strong>{partner.location}</strong>
+              搭檔：<strong>{partnerNickname ?? partnerPos.characterId}</strong>
             </span>
           )}
         </div>

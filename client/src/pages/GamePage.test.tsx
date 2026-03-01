@@ -133,13 +133,13 @@ describe("GamePage", () => {
     expect(screen.getByText("bridge")).toBeInTheDocument();
   });
 
-  it("shows partner location when partner exists", () => {
+  it("shows partner nickname when partner exists", () => {
     mockGameState.gameData = mockGameData;
     mockGameState.nightState = mockGameData.night;
     mockGameState.positions = mockGameData.positions;
     renderGamePage();
 
-    expect(screen.getByText("port")).toBeInTheDocument();
+    expect(screen.getByText("Bob")).toBeInTheDocument();
   });
 
   it("shows move submitted message", () => {
