@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSocket } from "../hooks/useSocket.js";
+import { useSocketContext } from "../context/SocketContext.js";
 import { useRoom } from "../hooks/useRoom.js";
-import { useEffect } from "react";
 
 export function LobbyPage() {
   const [nickname, setNickname] = useState("");
@@ -10,8 +9,7 @@ export function LobbyPage() {
   const [isConnecting, setIsConnecting] = useState(false);
   const navigate = useNavigate();
 
-  const connectedNickname = isConnecting ? nickname : null;
-  const { socket, isConnected } = useSocket(connectedNickname);
+  const { socket, isConnected, connect } = useSocketContext();
   const { roomCode, error, createRoom, joinRoom } = useRoom(socket);
 
   useEffect(() => {
@@ -23,6 +21,7 @@ export function LobbyPage() {
   const handleCreate = () => {
     if (!nickname.trim()) return;
     setIsConnecting(true);
+    connect(nickname);
   };
 
   // Once connected, auto-create room
@@ -35,6 +34,7 @@ export function LobbyPage() {
   const handleJoin = () => {
     if (!nickname.trim() || !joinCode.trim()) return;
     setIsConnecting(true);
+    connect(nickname);
   };
 
   // Once connected with joinCode, auto-join room

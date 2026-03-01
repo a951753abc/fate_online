@@ -1,5 +1,5 @@
-import { useParams } from "react-router-dom";
-import { useSocket } from "../hooks/useSocket.js";
+import { useParams, useNavigate } from "react-router-dom";
+import { useSocketContext } from "../context/SocketContext.js";
 import { useRoom } from "../hooks/useRoom.js";
 import { PlayerList } from "../components/PlayerList.js";
 import { RoleSelector } from "../components/RoleSelector.js";
@@ -7,12 +7,29 @@ import { DiceTest } from "../components/DiceTest.js";
 
 export function RoomPage() {
   const { code } = useParams<{ code: string }>();
-  const { socket } = useSocket(null); // Already connected from LobbyPage
+  const navigate = useNavigate();
+  const { socket } = useSocketContext();
   const { roomState, playerId, error, pairing, setRole, startGame, leaveRoom, kickPlayer } =
     useRoom(socket);
 
   const currentPlayer = roomState?.players.find((p) => p.id === playerId);
   const isHost = currentPlayer?.isHost ?? false;
+
+  const handleLeave = () => {
+    leaveRoom();
+    navigate("/");
+  };
+
+  if (!socket) {
+    return (
+      <div style={{ maxWidth: "600px", margin: "80px auto", padding: "24px" }}>
+        <p>Not connected. Please go back to lobby.</p>
+        <button onClick={() => navigate("/")} style={{ padding: "8px 16px", cursor: "pointer" }}>
+          Back to Lobby
+        </button>
+      </div>
+    );
+  }
 
   if (!roomState) {
     return (
@@ -26,7 +43,7 @@ export function RoomPage() {
     <div style={{ maxWidth: "600px", margin: "40px auto", padding: "24px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h1>Room: {roomState.code}</h1>
-        <button onClick={leaveRoom} style={{ padding: "8px 16px", cursor: "pointer" }}>
+        <button onClick={handleLeave} style={{ padding: "8px 16px", cursor: "pointer" }}>
           Leave
         </button>
       </div>

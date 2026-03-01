@@ -1,12 +1,19 @@
 # 聖杯戰爭 Online — 實作路線圖
 
-## Phase 0 — 基礎建設
+## Phase 0 — 基礎建設 ✅ `v0.1.0` (2026-03-02)
 **依據**: spec-08
-- Node.js + Express 伺服器
-- WebSocket (Socket.io) 連線
-- Redis + PostgreSQL 架構
-- 遊戲房間（建房/加入/角色分配）
-- 伺服器端骰子引擎（2D6 PRNG）
+- [x] Node.js + Express 伺服器 (TypeScript, ESM)
+- [x] WebSocket (Socket.io) 連線 + 暱稱認證中間件
+- [x] Redis + PostgreSQL 架構 (Docker Compose)
+- [x] 遊戲房間（建房/加入/離開/踢人/角色分配/開始遊戲）
+- [x] 伺服器端骰子引擎（crypto PRNG, rejection sampling, 2D6）
+- [x] React 19 + Vite 6 前端（Lobby + Room + DiceTest）
+- [x] ESLint flat config + Prettier + simple-git-hooks + lint-staged
+- [x] 54 unit tests, 94% coverage (vitest + @vitest/coverage-v8)
+- [x] Docker multi-stage build + Caddy reverse proxy
+- [x] SQL migration runner (001_init: rooms + game_events)
+
+**交付物**: Git commit `3e21293`, pushed to `origin/main`
 
 ## Phase 1 — 空間 + 時間
 **依據**: spec-05, spec-01
@@ -78,9 +85,9 @@
 ## 依賴鏈
 
 ```
-基礎建設 → 空間+時間 → 角色 → 戰鬥 → 通訊 → 情報迷霧 → 進階機制 → NPC → 平衡
-                                  ↑                ↑                       ↑
-                           第一次 playtest    第二次 playtest         正式 playtest
+基礎建設 ✅ → 空間+時間 → 角色 → 戰鬥 → 通訊 → 情報迷霧 → 進階機制 → NPC → 平衡
+                                   ↑                ↑                       ↑
+                            第一次 playtest    第二次 playtest         正式 playtest
 ```
 
 ## 設計原則

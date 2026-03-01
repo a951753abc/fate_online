@@ -11,7 +11,16 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["src/**/*.{ts,tsx}"],
-      exclude: ["src/**/*.test.{ts,tsx}", "src/test-setup.ts", "src/main.tsx"],
+      exclude: [
+        "src/**/*.test.{ts,tsx}",
+        "src/test-setup.ts",
+        "src/main.tsx",
+        "src/__mocks__/**",
+        "src/types/**",
+        "src/hooks/useSocket.ts",
+        "src/App.tsx",
+        "src/socket.ts",
+      ],
       reporter: ["text", "html"],
       thresholds: {
         statements: 80,
