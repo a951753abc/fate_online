@@ -64,6 +64,9 @@ export function useGameState(
       setMoveSubmitted(false);
       setMoveError(null);
       setEncounters([]);
+      if (data.phase === "free_action") {
+        setNightReport(null);
+      }
     };
 
     const onPositions = (data: PositionsPayload) => {
@@ -92,7 +95,11 @@ export function useGameState(
     };
 
     const onLocationDestroyed = (data: LocationDestroyedPayload) => {
-      setDestroyedLocations((prev) => [...prev, ...data.locationIds]);
+      setDestroyedLocations((prev) => {
+        const next = new Set(prev);
+        for (const id of data.locationIds) next.add(id);
+        return [...next];
+      });
     };
 
     const onGameEnded = (data: GameEndedPayload) => {

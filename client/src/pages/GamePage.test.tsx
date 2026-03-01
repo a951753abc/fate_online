@@ -22,7 +22,19 @@ vi.mock("../hooks/useGameState.js", () => ({
   useGameState: () => mockGameState,
 }));
 
-// Mock MapView to avoid map-data.json dependency
+// Mock map-data.json (imported by GamePage for adjacency + by MapView for rendering)
+vi.mock("../../../map/map-data.json", () => ({
+  default: {
+    meta: { canvas: { width: 800, height: 600 } },
+    locations: [
+      { id: "bridge", name: "奏琴橋", zone: "town", x: 400, y: 300 },
+      { id: "port", name: "港口", zone: "sea", x: 500, y: 400 },
+    ],
+    connections: [{ from: "bridge", to: "port", type: "normal" }],
+  },
+}));
+
+// Mock MapView to avoid rendering SVG in jsdom
 vi.mock("../components/game/MapView.js", () => ({
   MapView: (props: { myLocation: string }) => (
     <div data-testid="map-view">MapView: {props.myLocation}</div>

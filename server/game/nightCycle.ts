@@ -63,6 +63,7 @@ export class NightCycleEngine {
     const endsAt = Date.now() + this.config.freeActionDurationMs;
     setPhase(this.roomCode, "free_action", endsAt)
       .then(() => {
+        if (this.stopped) return;
         this.emit("game:phaseChange", {
           nightNumber,
           phase: "free_action" as NightPhase,

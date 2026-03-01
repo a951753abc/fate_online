@@ -1,5 +1,9 @@
+import { useMemo } from "react";
 import type { LocationId, CharacterPositionView } from "../../types/protocol.js";
 import mapData from "../../../../map/map-data.json";
+
+// Module-level lookup — mapData is a static JSON import, built once
+const locationById = new Map(mapData.locations.map((l) => [l.id, l]));
 
 interface MapViewProps {
   readonly positions: readonly CharacterPositionView[];
@@ -35,20 +39,28 @@ export function MapView({
   const connections = mapData.connections;
   const canvas = mapData.meta.canvas;
 
-  // Group positions by location
-  const locationChars = new Map<string, CharacterPositionView[]>();
-  for (const pos of positions) {
-    const list = locationChars.get(pos.location) ?? [];
-    locationChars.set(pos.location, [...list, pos]);
-  }
+  const locationChars = useMemo(() => {
+    const map = new Map<string, CharacterPositionView[]>();
+    for (const pos of positions) {
+      const list = map.get(pos.location);
+      if (list) {
+        list.push(pos);
+      } else {
+        map.set(pos.location, [pos]);
+      }
+    }
+    return map;
+  }, [positions]);
 
-  // Occupation lookup
-  const occupationMap = new Map<string, number>();
-  for (const occ of occupations) {
-    occupationMap.set(occ.locationId, occ.groupIndex);
-  }
+  const occupationMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const occ of occupations) {
+      map.set(occ.locationId, occ.groupIndex);
+    }
+    return map;
+  }, [occupations]);
 
-  const destroyedSet = new Set(destroyedLocations);
+  const destroyedSet = useMemo(() => new Set(destroyedLocations), [destroyedLocations]);
 
   return (
     <svg
@@ -57,8 +69,8 @@ export function MapView({
     >
       {/* Connections */}
       {connections.map((conn, i) => {
-        const from = locations.find((l) => l.id === conn.from);
-        const to = locations.find((l) => l.id === conn.to);
+        const from = locationById.get(conn.from);
+        const to = locationById.get(conn.to);
         if (!from || !to) return null;
         return (
           <line

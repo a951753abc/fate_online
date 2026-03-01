@@ -108,8 +108,12 @@ export const LOCATION_IDS: readonly LocationId[] = Object.freeze(LOCATIONS.map((
 
 export const LEY_LINE_LOCATIONS: readonly LocationId[] = Object.freeze(["upstream", "river-mouth"]);
 
+const LOCATION_MAP: ReadonlyMap<LocationId, LocationDef> = new Map(
+  LOCATIONS.map((loc) => [loc.id, loc]),
+);
+
 export function getLocationDef(id: LocationId): LocationDef {
-  const loc = LOCATIONS.find((l) => l.id === id);
+  const loc = LOCATION_MAP.get(id);
   if (!loc) throw new Error(`Unknown location: ${id}`);
   return loc;
 }

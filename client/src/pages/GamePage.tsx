@@ -1,28 +1,27 @@
+import { useMemo } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import { useSocketContext } from "../context/SocketContext.js";
 import { useGameState } from "../hooks/useGameState.js";
 import { MapView } from "../components/game/MapView.js";
 import { NightHud } from "../components/game/NightHud.js";
 import type { LocationId, GameInitializedPayload } from "../types/protocol.js";
+import mapData from "../../../map/map-data.json";
 
-// Adjacency data for valid move calculation (matches server mapData)
-const ADJACENCY: Record<string, readonly string[]> = {
-  "water-tower": ["old-residential", "mountain-path"],
-  "old-residential": ["water-tower", "mountain-path", "shopping"],
-  "mountain-path": ["water-tower", "old-residential", "upstream", "bridge"],
-  upstream: ["mountain-path", "aqueduct"],
-  church: ["bridge"],
-  bridge: ["church", "mountain-path", "shopping", "station", "warehouse"],
-  shopping: ["old-residential", "bridge", "station"],
-  station: ["bridge", "shopping", "port"],
-  port: ["station", "warehouse", "river-mouth"],
-  warehouse: ["bridge", "port", "river-mouth"],
-  "river-mouth": ["warehouse", "port", "aqueduct"],
-  aqueduct: ["upstream", "river-mouth"],
-};
+// Derive adjacency from the shared map-data.json (single source of truth)
+const ADJACENCY: ReadonlyMap<string, readonly string[]> = (() => {
+  const map = new Map<string, string[]>();
+  for (const loc of mapData.locations) {
+    map.set(loc.id, []);
+  }
+  for (const conn of mapData.connections) {
+    map.get(conn.from)!.push(conn.to);
+    map.get(conn.to)!.push(conn.from);
+  }
+  return map;
+})();
 
 function getValidMoves(current: LocationId): LocationId[] {
-  const adjacent = (ADJACENCY[current] ?? []) as LocationId[];
+  const adjacent = (ADJACENCY.get(current) ?? []) as LocationId[];
   if (current === "station") {
     // 2-step BFS from station
     const visited = new Set<string>(["station"]);
@@ -32,7 +31,7 @@ function getValidMoves(current: LocationId): LocationId[] {
       const { loc, dist } = queue.shift()!;
       if (dist > 0) reachable.push(loc as LocationId);
       if (dist >= 2) continue;
-      for (const n of ADJACENCY[loc] ?? []) {
+      for (const n of ADJACENCY.get(loc) ?? []) {
         if (!visited.has(n)) {
           visited.add(n);
           queue.push({ loc: n, dist: dist + 1 });
@@ -51,6 +50,19 @@ export function GamePage() {
   const navGameInit = (location.state as { gameInit?: GameInitializedPayload } | null)?.gameInit;
   const game = useGameState(socket, navGameInit);
 
+  const myLocation =
+    game.gameData && game.positions.length > 0
+      ? (game.positions.find((p) => p.characterId === game.gameData!.yourCharacterId)?.location ??
+        game.gameData.yourLocation)
+      : (game.gameData?.yourLocation ?? ("bridge" as LocationId));
+
+  const canMove =
+    !!game.gameData && game.nightState?.phase === "free_action" && !game.moveSubmitted;
+  const validMoves = useMemo(
+    () => (canMove ? getValidMoves(myLocation) : []),
+    [canMove, myLocation],
+  );
+
   if (!socket) {
     return (
       <div style={{ maxWidth: "800px", margin: "40px auto", padding: "24px" }}>
@@ -67,14 +79,6 @@ export function GamePage() {
     );
   }
 
-  const myLocation =
-    game.positions.find((p) => p.characterId === game.gameData!.yourCharacterId)?.location ??
-    game.gameData.yourLocation;
-
-  const canMove = game.nightState?.phase === "free_action" && !game.moveSubmitted;
-  const validMoves = canMove ? getValidMoves(myLocation) : [];
-
-  // Find partner distance
   const myGroup = game.gameData.yourGroupIndex;
   const partner = game.positions.find(
     (p) => p.groupIndex === myGroup && p.characterId !== game.gameData!.yourCharacterId,

@@ -9,7 +9,7 @@ import type {
   GroupState,
   OccupationEntry,
 } from "./types.js";
-import { getValidMoves } from "./map/mapUtils.js";
+import { getValidMoves, getAdjacentLocations } from "./map/mapUtils.js";
 import { LOCATION_IDS, LEY_LINE_LOCATIONS } from "./map/mapData.js";
 
 // Redis key helpers
@@ -117,12 +117,13 @@ export async function submitMove(
 ): Promise<{ readonly success: boolean; readonly error?: string }> {
   const redis = getRedis();
 
-  const meta = await redis.hgetall(gameKey(roomCode));
+  const [meta, destroyed] = await Promise.all([
+    redis.hgetall(gameKey(roomCode)),
+    redis.smembers(destroyedKey(roomCode)),
+  ]);
   if (meta.nightPhase !== "free_action") {
     return Object.freeze({ success: false, error: "Not in free action phase" });
   }
-
-  const destroyed = await redis.smembers(destroyedKey(roomCode));
   if (destroyed.includes(target)) {
     return Object.freeze({ success: false, error: "Location is destroyed" });
   }
@@ -204,8 +205,12 @@ export async function updateOccupations(roomCode: string): Promise<readonly Occu
   // Group stationary chars by location
   const locationGroups = new Map<LocationId, CharacterState[]>();
   for (const char of stationaryChars) {
-    const list = locationGroups.get(char.location) ?? [];
-    locationGroups.set(char.location, [...list, char]);
+    const list = locationGroups.get(char.location);
+    if (list) {
+      list.push(char);
+    } else {
+      locationGroups.set(char.location, [char]);
+    }
   }
 
   const occupations: OccupationEntry[] = [];
@@ -300,7 +305,7 @@ export async function destroyLocations(
     for (const [charId, charJson] of Object.entries(charsRaw)) {
       const char = JSON.parse(charJson as string) as CharacterState;
       if (toDestroy.includes(char.location)) {
-        const adjacent = (await import("./map/mapUtils.js")).getAdjacentLocations(char.location);
+        const adjacent = getAdjacentLocations(char.location);
         const safe = adjacent.filter((loc) => !alreadySet.has(loc) && !toDestroy.includes(loc));
         if (safe.length > 0) {
           const newLoc = safe[Math.floor(Math.random() * safe.length)];
