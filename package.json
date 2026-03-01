@@ -1,0 +1,64 @@
+{
+  "name": "fate-online",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch server/index.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/server/index.js",
+    "client:dev": "cd client && npm run dev",
+    "install:all": "npm install && cd client && npm install",
+    "db:migrate": "tsx server/db/migrate.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:client": "cd client && npx vitest run",
+    "test:all": "npm test && npm run test:client",
+    "prepare": "simple-git-hooks"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npx lint-staged"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,css,html}": [
+      "prettier --write"
+    ]
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "ioredis": "^5.4.2",
+    "pg": "^8.13.1",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.0",
+    "@types/pg": "^8.11.10",
+    "@types/supertest": "^6.0.2",
+    "@vitest/coverage-v8": "^3.0.0",
+    "eslint": "^9.18.0",
+    "eslint-plugin-react": "^7.37.3",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "lint-staged": "^15.3.0",
+    "prettier": "^3.4.2",
+    "simple-git-hooks": "^2.11.1",
+    "supertest": "^7.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.20.0",
+    "vitest": "^3.0.0"
+  }
+}

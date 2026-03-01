@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+client/dist/
+
+# Coverage
+coverage/
+
+# TypeScript
+*.tsbuildinfo
+
+# Environment
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Logs
+*.log

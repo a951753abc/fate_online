@@ -1,0 +1,176 @@
+{
+  "meta": {
+    "title": "月白町 聖杯戰爭地圖",
+    "version": "0.1.0",
+    "canvas": { "width": 800, "height": 620 }
+  },
+  "zones": [
+    { "id": "mountain", "name": "山側", "color": "#3a5a2c", "yStart": 0, "yEnd": 220 },
+    { "id": "town", "name": "市街", "color": "#8a7d6b", "yStart": 220, "yEnd": 410 },
+    { "id": "sea", "name": "海側", "color": "#1a4b7a", "yStart": 410, "yEnd": 620 }
+  ],
+  "river": {
+    "name": "奏琴川",
+    "note": "主靈脈——貫穿月白町",
+    "points": [
+      { "x": 560, "y": 30 },
+      { "x": 545, "y": 100 },
+      { "x": 530, "y": 170 },
+      { "x": 500, "y": 240 },
+      { "x": 470, "y": 300 },
+      { "x": 490, "y": 370 },
+      { "x": 530, "y": 430 },
+      { "x": 560, "y": 455 },
+      { "x": 590, "y": 475 },
+      { "x": 620, "y": 510 },
+      { "x": 660, "y": 560 },
+      { "x": 700, "y": 620 }
+    ]
+  },
+  "locations": [
+    {
+      "id": "water-tower",
+      "name": "配水塔",
+      "zone": "mountain",
+      "function": "情報據點",
+      "description": "可查看全地圖模糊動態",
+      "stars": 4,
+      "x": 180,
+      "y": 85
+    },
+    {
+      "id": "old-residential",
+      "name": "舊宅區",
+      "zone": "mountain",
+      "function": "防禦工事",
+      "description": "守方戰鬥判定+2",
+      "stars": 3,
+      "x": 420,
+      "y": 75
+    },
+    {
+      "id": "mountain-path",
+      "name": "山道",
+      "zone": "mountain",
+      "function": "伏擊地形",
+      "description": "設伏方奇襲判定加成",
+      "stars": 2,
+      "x": 190,
+      "y": 175
+    },
+    {
+      "id": "upstream",
+      "name": "奏琴川上流",
+      "zone": "mountain",
+      "function": "次級靈脈",
+      "description": "每夜少量回復魔力，可進行魔術強化/製作",
+      "stars": 4,
+      "x": 530,
+      "y": 165
+    },
+    {
+      "id": "church",
+      "name": "教會",
+      "zone": "town",
+      "function": "中立區域",
+      "description": "前三夜不可戰鬥、情報交換",
+      "stars": 3,
+      "x": 90,
+      "y": 285
+    },
+    {
+      "id": "bridge",
+      "name": "奏琴橋",
+      "zone": "town",
+      "function": "咽喉要道",
+      "description": "連接山側與海側的必經主幹道",
+      "stars": 4,
+      "x": 370,
+      "y": 275
+    },
+    {
+      "id": "shopping",
+      "name": "商店街",
+      "zone": "town",
+      "function": "人群密集",
+      "description": "戰鬥受限但奇襲加成高",
+      "stars": 2,
+      "x": 590,
+      "y": 290
+    },
+    {
+      "id": "station",
+      "name": "月白駅前",
+      "zone": "town",
+      "function": "交通樞紐",
+      "description": "可移動至 2 步內據點",
+      "stars": 4,
+      "x": 360,
+      "y": 375
+    },
+    {
+      "id": "port",
+      "name": "港口",
+      "zone": "sea",
+      "function": "物資據點",
+      "description": "佔領者每夜獲得消耗品",
+      "stars": 3,
+      "x": 160,
+      "y": 440
+    },
+    {
+      "id": "warehouse",
+      "name": "倉庫區",
+      "zone": "sea",
+      "function": "開闘區域",
+      "description": "鐵皮屋——無地形限制的正面決戰場",
+      "stars": 3,
+      "x": 400,
+      "y": 435
+    },
+    {
+      "id": "river-mouth",
+      "name": "奏琴川河口",
+      "zone": "sea",
+      "function": "靈脈據點（主）",
+      "description": "每夜回復魔力，可進行魔術強化/製作",
+      "stars": 5,
+      "x": 600,
+      "y": 455
+    },
+    {
+      "id": "aqueduct",
+      "name": "暗渠",
+      "zone": "global",
+      "function": "隱密通道",
+      "description": "可繞過奏琴橋連接山側與海側",
+      "stars": 4,
+      "x": 710,
+      "y": 320
+    }
+  ],
+  "connections": [
+    { "from": "water-tower", "to": "old-residential", "type": "normal" },
+    { "from": "water-tower", "to": "mountain-path", "type": "normal" },
+    { "from": "old-residential", "to": "mountain-path", "type": "normal" },
+    { "from": "mountain-path", "to": "upstream", "type": "normal" },
+
+    { "from": "mountain-path", "to": "bridge", "type": "normal" },
+    { "from": "old-residential", "to": "shopping", "type": "normal" },
+
+    { "from": "church", "to": "bridge", "type": "normal" },
+    { "from": "bridge", "to": "shopping", "type": "normal" },
+    { "from": "shopping", "to": "station", "type": "normal" },
+    { "from": "station", "to": "bridge", "type": "normal" },
+
+    { "from": "bridge", "to": "warehouse", "type": "normal" },
+    { "from": "station", "to": "port", "type": "normal" },
+
+    { "from": "port", "to": "warehouse", "type": "normal" },
+    { "from": "warehouse", "to": "river-mouth", "type": "normal" },
+    { "from": "port", "to": "river-mouth", "type": "normal" },
+
+    { "from": "aqueduct", "to": "upstream", "type": "hidden" },
+    { "from": "aqueduct", "to": "river-mouth", "type": "hidden" }
+  ]
+}

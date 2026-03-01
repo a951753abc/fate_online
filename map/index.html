@@ -1,0 +1,845 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <title>月白町 — 聖杯戰爭地圖</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: #1a1a2e;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        font-family: "MS Gothic", "Courier New", monospace;
+        color: #e0d8c8;
+      }
+      h1 {
+        font-size: 18px;
+        letter-spacing: 6px;
+        margin-bottom: 8px;
+        color: #c8b88a;
+        text-shadow: 0 0 10px rgba(200, 184, 138, 0.3);
+      }
+      .subtitle {
+        font-size: 11px;
+        color: #888;
+        margin-bottom: 12px;
+        letter-spacing: 2px;
+      }
+      #mapCanvas {
+        border: 2px solid #3a3a4a;
+        cursor: crosshair;
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+      }
+      #tooltip {
+        position: fixed;
+        background: rgba(20, 20, 35, 0.95);
+        border: 1px solid #c8b88a;
+        padding: 10px 14px;
+        font-size: 13px;
+        line-height: 1.6;
+        pointer-events: none;
+        display: none;
+        max-width: 280px;
+        z-index: 100;
+      }
+      #tooltip .loc-name {
+        font-size: 15px;
+        font-weight: bold;
+        color: #c8b88a;
+        margin-bottom: 4px;
+      }
+      #tooltip .loc-func {
+        color: #8ab4f8;
+        font-size: 12px;
+      }
+      #tooltip .loc-desc {
+        color: #aaa;
+        font-size: 11px;
+        margin-top: 2px;
+      }
+      #tooltip .loc-stars {
+        color: #f0c040;
+        font-size: 12px;
+        margin-top: 4px;
+      }
+      #tooltip .loc-zone {
+        color: #6a8;
+        font-size: 11px;
+      }
+      #info {
+        margin-top: 10px;
+        font-size: 11px;
+        color: #666;
+        letter-spacing: 1px;
+      }
+      .legend {
+        display: flex;
+        gap: 20px;
+        margin-top: 8px;
+        font-size: 11px;
+        color: #888;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .legend-color {
+        width: 12px;
+        height: 12px;
+        border: 1px solid #555;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>月 白 町</h1>
+    <div class="subtitle">銀歌市衛星城鎮 — 聖杯戰爭 戰場地圖</div>
+    <canvas id="mapCanvas" width="800" height="620"></canvas>
+    <div id="tooltip"></div>
+    <div id="info">HOVER 查看據點情報 | CLICK 顯示鄰接據點</div>
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-color" style="background: #3a5a2c"></div>
+        山側
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #5a5347"></div>
+        市街
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #1a4b7a"></div>
+        海側
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #3a8adb; opacity: 0.6"></div>
+        奏琴川（靈脈）
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: transparent; border: 1px dashed #c8b88a"></div>
+        暗渠
+      </div>
+    </div>
+
+    <script>
+      const MAP_DATA = {
+        locations: [
+          {
+            id: "water-tower",
+            name: "配水塔",
+            zone: "mountain",
+            func: "情報據點",
+            desc: "可查看全地圖模糊動態",
+            stars: 4,
+            x: 180,
+            y: 85,
+          },
+          {
+            id: "old-residential",
+            name: "舊宅區",
+            zone: "mountain",
+            func: "防禦工事",
+            desc: "守方戰鬥判定+2",
+            stars: 3,
+            x: 420,
+            y: 75,
+          },
+          {
+            id: "mountain-path",
+            name: "山道",
+            zone: "mountain",
+            func: "伏擊地形",
+            desc: "設伏方奇襲判定加成",
+            stars: 2,
+            x: 190,
+            y: 175,
+          },
+          {
+            id: "upstream",
+            name: "奏琴川上流",
+            zone: "mountain",
+            func: "次級靈脈",
+            desc: "每夜少量回復魔力・魔術工房",
+            stars: 4,
+            x: 530,
+            y: 165,
+          },
+          {
+            id: "church",
+            name: "教會",
+            zone: "town",
+            func: "中立區域",
+            desc: "前三夜不可戰鬥・情報交換",
+            stars: 3,
+            x: 90,
+            y: 285,
+          },
+          {
+            id: "bridge",
+            name: "奏琴橋",
+            zone: "town",
+            func: "咽喉要道",
+            desc: "連接山側與海側的必經主幹道",
+            stars: 4,
+            x: 370,
+            y: 275,
+          },
+          {
+            id: "shopping",
+            name: "商店街",
+            zone: "town",
+            func: "人群密集",
+            desc: "戰鬥受限・奇襲加成高",
+            stars: 2,
+            x: 590,
+            y: 290,
+          },
+          {
+            id: "station",
+            name: "月白駅前",
+            zone: "town",
+            func: "交通樞紐",
+            desc: "可移動至2步內據點",
+            stars: 4,
+            x: 360,
+            y: 375,
+          },
+          {
+            id: "port",
+            name: "港口",
+            zone: "sea",
+            func: "物資據點",
+            desc: "佔領者每夜獲得消耗品",
+            stars: 3,
+            x: 160,
+            y: 440,
+          },
+          {
+            id: "warehouse",
+            name: "倉庫區",
+            zone: "sea",
+            func: "開闘區域",
+            desc: "鐵皮屋——正面決戰場",
+            stars: 3,
+            x: 400,
+            y: 435,
+          },
+          {
+            id: "river-mouth",
+            name: "奏琴川河口",
+            zone: "sea",
+            func: "靈脈據點（主）",
+            desc: "每夜回復魔力・魔術工房",
+            stars: 5,
+            x: 600,
+            y: 455,
+          },
+          {
+            id: "aqueduct",
+            name: "暗渠",
+            zone: "global",
+            func: "隱密通道",
+            desc: "繞過奏琴橋連接山側與海側",
+            stars: 4,
+            x: 710,
+            y: 320,
+          },
+        ],
+        connections: [
+          { from: "water-tower", to: "old-residential", type: "normal" },
+          { from: "water-tower", to: "mountain-path", type: "normal" },
+          { from: "old-residential", to: "mountain-path", type: "normal" },
+          { from: "mountain-path", to: "upstream", type: "normal" },
+          { from: "mountain-path", to: "bridge", type: "normal" },
+          { from: "old-residential", to: "shopping", type: "normal" },
+          { from: "church", to: "bridge", type: "normal" },
+          { from: "bridge", to: "shopping", type: "normal" },
+          { from: "shopping", to: "station", type: "normal" },
+          { from: "station", to: "bridge", type: "normal" },
+          { from: "bridge", to: "warehouse", type: "normal" },
+          { from: "station", to: "port", type: "normal" },
+          { from: "port", to: "warehouse", type: "normal" },
+          { from: "warehouse", to: "river-mouth", type: "normal" },
+          { from: "port", to: "river-mouth", type: "normal" },
+          { from: "aqueduct", to: "upstream", type: "hidden" },
+          { from: "aqueduct", to: "river-mouth", type: "hidden" },
+        ],
+        river: [
+          { x: 560, y: 30 },
+          { x: 545, y: 80 },
+          { x: 535, y: 130 },
+          { x: 530, y: 170 },
+          { x: 510, y: 210 },
+          { x: 490, y: 250 },
+          { x: 470, y: 290 },
+          { x: 480, y: 340 },
+          { x: 500, y: 390 },
+          { x: 530, y: 430 },
+          { x: 560, y: 455 },
+          { x: 590, y: 475 },
+          { x: 620, y: 510 },
+          { x: 660, y: 560 },
+          { x: 700, y: 620 },
+        ],
+      };
+
+      const canvas = document.getElementById("mapCanvas");
+      const ctx = canvas.getContext("2d");
+      const tooltip = document.getElementById("tooltip");
+      const W = canvas.width;
+      const H = canvas.height;
+
+      let hoveredLoc = null;
+      let selectedLoc = null;
+      let adjacentIds = [];
+      let animFrame = 0;
+
+      // ===== Utility =====
+      function getLocById(id) {
+        return MAP_DATA.locations.find((l) => l.id === id);
+      }
+
+      function getAdjacentIds(locId) {
+        const ids = [];
+        for (const c of MAP_DATA.connections) {
+          if (c.from === locId) ids.push(c.to);
+          if (c.to === locId) ids.push(c.from);
+        }
+        return ids;
+      }
+
+      function dist(x1, y1, x2, y2) {
+        return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
+      }
+
+      // ===== Pixel Art Helpers =====
+      function drawPixelRect(x, y, w, h, color) {
+        ctx.fillStyle = color;
+        ctx.fillRect(Math.floor(x), Math.floor(y), Math.floor(w), Math.floor(h));
+      }
+
+      function drawDitheredRect(x, y, w, h, color1, color2, density) {
+        ctx.fillStyle = color1;
+        ctx.fillRect(x, y, w, h);
+        ctx.fillStyle = color2;
+        for (let py = y; py < y + h; py += 2) {
+          for (let px = x; px < x + w; px += 2) {
+            if (Math.random() < density) {
+              ctx.fillRect(px, py, 1, 1);
+            }
+          }
+        }
+      }
+
+      // ===== Terrain Drawing =====
+      function drawTerrain() {
+        // Mountain zone - dark green with brown tones
+        const mtnGrad = ctx.createLinearGradient(0, 0, 0, 220);
+        mtnGrad.addColorStop(0, "#2a4a22");
+        mtnGrad.addColorStop(0.7, "#3a5a2c");
+        mtnGrad.addColorStop(1, "#4a6a3a");
+        ctx.fillStyle = mtnGrad;
+        ctx.fillRect(0, 0, W, 220);
+
+        // Mountain peaks at top
+        ctx.fillStyle = "#1e3a18";
+        for (let i = 0; i < 8; i++) {
+          const px = i * 110 + 30;
+          const ph = 25 + Math.sin(i * 1.7) * 15;
+          ctx.beginPath();
+          ctx.moveTo(px - 50, 50);
+          ctx.lineTo(px, 50 - ph);
+          ctx.lineTo(px + 50, 50);
+          ctx.fill();
+        }
+
+        // Town zone - beige/gray
+        const townGrad = ctx.createLinearGradient(0, 220, 0, 410);
+        townGrad.addColorStop(0, "#5a5347");
+        townGrad.addColorStop(0.5, "#6a6357");
+        townGrad.addColorStop(1, "#4a4a50");
+        ctx.fillStyle = townGrad;
+        ctx.fillRect(0, 220, W, 190);
+
+        // Coastal strip - sandy/concrete dock area where buildings sit
+        const coastGrad = ctx.createLinearGradient(0, 410, 0, 490);
+        coastGrad.addColorStop(0, "#4a4a50");
+        coastGrad.addColorStop(0.4, "#4a5560");
+        coastGrad.addColorStop(1, "#3a4a5a");
+        ctx.fillStyle = coastGrad;
+        ctx.fillRect(0, 410, W, 80);
+
+        // Shoreline accent
+        ctx.fillStyle = "#5a6a6a";
+        ctx.fillRect(0, 486, W, 2);
+        ctx.fillStyle = "#3a4a5a";
+        ctx.fillRect(0, 488, W, 2);
+
+        // Sea zone - deep blue (starts below coastline)
+        const seaGrad = ctx.createLinearGradient(0, 490, 0, H);
+        seaGrad.addColorStop(0, "#1a4b7a");
+        seaGrad.addColorStop(0.5, "#15406a");
+        seaGrad.addColorStop(1, "#0d2d4d");
+        ctx.fillStyle = seaGrad;
+        ctx.fillRect(0, 490, W, H - 490);
+
+        // Wave pattern at bottom (below shoreline only)
+        ctx.fillStyle = "#2a5a8a";
+        for (let wy = 500; wy < H; wy += 18) {
+          for (let wx = 0; wx < W; wx += 30) {
+            const offset = (wy / 18) % 2 === 0 ? 0 : 15;
+            ctx.fillRect(wx + offset + Math.sin(animFrame * 0.02 + wx * 0.1) * 3, wy, 12, 2);
+          }
+        }
+
+        // Tree dots on mountain
+        ctx.fillStyle = "#2a5020";
+        const treeSeed = [
+          [40, 60],
+          [80, 45],
+          [130, 70],
+          [260, 55],
+          [300, 80],
+          [340, 50],
+          [500, 95],
+          [550, 60],
+          [600, 80],
+          [650, 55],
+          [700, 90],
+          [750, 70],
+          [60, 120],
+          [120, 140],
+          [280, 130],
+          [320, 110],
+          [640, 130],
+          [680, 110],
+          [50, 180],
+          [100, 160],
+          [270, 190],
+          [680, 180],
+          [730, 160],
+        ];
+        for (const [tx, ty] of treeSeed) {
+          ctx.fillRect(tx, ty, 4, 4);
+          ctx.fillRect(tx - 2, ty + 2, 8, 3);
+          ctx.fillRect(tx - 1, ty + 4, 6, 2);
+        }
+
+        // Zone divider lines (subtle)
+        ctx.strokeStyle = "rgba(200,184,138,0.15)";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([8, 4]);
+        ctx.beginPath();
+        ctx.moveTo(0, 220);
+        ctx.lineTo(W, 220);
+        ctx.moveTo(0, 410);
+        ctx.lineTo(W, 410);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Zone labels
+        ctx.fillStyle = "rgba(200,184,138,0.2)";
+        ctx.font = '14px "MS Gothic", monospace';
+        ctx.textAlign = "right";
+        ctx.fillText("山側", W - 15, 20);
+        ctx.fillText("市街", W - 15, 237);
+        ctx.fillText("海側", W - 15, 425);
+      }
+
+      // ===== River Drawing =====
+      function drawRiver() {
+        const pts = MAP_DATA.river;
+        const riverWidth = 14;
+
+        // River body
+        ctx.strokeStyle = "#2a6ab0";
+        ctx.lineWidth = riverWidth;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length; i++) {
+          const xc = (pts[i - 1].x + pts[i].x) / 2;
+          const yc = (pts[i - 1].y + pts[i].y) / 2;
+          ctx.quadraticCurveTo(pts[i - 1].x, pts[i - 1].y, xc, yc);
+        }
+        ctx.stroke();
+
+        // River highlight
+        ctx.strokeStyle = "rgba(100,180,255,0.3)";
+        ctx.lineWidth = riverWidth - 4;
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x - 1, pts[0].y);
+        for (let i = 1; i < pts.length; i++) {
+          const xc = (pts[i - 1].x + pts[i].x) / 2 - 1;
+          const yc = (pts[i - 1].y + pts[i].y) / 2;
+          ctx.quadraticCurveTo(pts[i - 1].x - 1, pts[i - 1].y, xc, yc);
+        }
+        ctx.stroke();
+
+        // Animated flow sparkles
+        ctx.fillStyle = "rgba(180,220,255,0.5)";
+        for (let i = 0; i < pts.length - 1; i++) {
+          const t = (animFrame * 0.01 + i * 0.3) % 1;
+          const sx = pts[i].x + (pts[i + 1].x - pts[i].x) * t;
+          const sy = pts[i].y + (pts[i + 1].y - pts[i].y) * t;
+          ctx.fillRect(Math.floor(sx) - 1, Math.floor(sy) - 1, 3, 2);
+        }
+
+        // River label
+        ctx.save();
+        ctx.fillStyle = "rgba(100,180,255,0.5)";
+        ctx.font = '10px "MS Gothic", monospace';
+        ctx.textAlign = "center";
+        ctx.translate(515, 230);
+        ctx.rotate(-0.5);
+        ctx.fillText("奏琴川", 0, 0);
+        ctx.restore();
+      }
+
+      // ===== Connection Drawing =====
+      function drawConnections() {
+        for (const conn of MAP_DATA.connections) {
+          const from = getLocById(conn.from);
+          const to = getLocById(conn.to);
+          if (!from || !to) continue;
+
+          const isHighlighted =
+            selectedLoc &&
+            (adjacentIds.includes(conn.from) || adjacentIds.includes(conn.to)) &&
+            (conn.from === selectedLoc.id || conn.to === selectedLoc.id);
+
+          if (conn.type === "hidden") {
+            // Dashed line for hidden passages
+            ctx.strokeStyle = isHighlighted ? "rgba(200,184,138,0.8)" : "rgba(200,184,138,0.2)";
+            ctx.lineWidth = isHighlighted ? 2 : 1;
+            ctx.setLineDash([6, 4]);
+          } else {
+            ctx.strokeStyle = isHighlighted ? "rgba(200,184,138,0.7)" : "rgba(200,184,138,0.12)";
+            ctx.lineWidth = isHighlighted ? 2.5 : 1.5;
+            ctx.setLineDash([]);
+          }
+
+          ctx.beginPath();
+          ctx.moveTo(from.x, from.y);
+          ctx.lineTo(to.x, to.y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      }
+
+      // ===== Building Pixel Art =====
+      function drawBuilding(loc, state) {
+        const { x, y, id } = loc;
+        const isHover = state === "hover";
+        const isSelected = state === "selected";
+        const isAdjacent = state === "adjacent";
+        const isDim = state === "dim";
+
+        const alpha = isDim ? 0.4 : 1;
+        ctx.globalAlpha = alpha;
+
+        // Glow for selected/adjacent
+        if (isSelected) {
+          ctx.shadowColor = "#c8b88a";
+          ctx.shadowBlur = 15;
+        } else if (isAdjacent) {
+          ctx.shadowColor = "#8ab4f8";
+          ctx.shadowBlur = 10;
+        } else if (isHover) {
+          ctx.shadowColor = "#fff";
+          ctx.shadowBlur = 8;
+        }
+
+        switch (id) {
+          case "water-tower":
+            // Tall thin tower
+            drawPixelRect(x - 3, y - 20, 6, 28, "#8a7a6a");
+            drawPixelRect(x - 6, y - 24, 12, 6, "#9a8a7a");
+            drawPixelRect(x - 8, y - 28, 16, 5, "#7a6a5a");
+            // Antenna
+            drawPixelRect(x - 1, y - 32, 2, 5, "#aaa");
+            break;
+
+          case "old-residential":
+            // Cluster of small houses
+            drawPixelRect(x - 12, y - 10, 10, 12, "#7a6a5a");
+            drawPixelRect(x - 14, y - 14, 14, 4, "#6a5a4a");
+            drawPixelRect(x + 2, y - 8, 8, 10, "#8a7a6a");
+            drawPixelRect(x, y - 12, 12, 4, "#7a6a5a");
+            drawPixelRect(x - 6, y - 6, 6, 8, "#6a5a4a");
+            break;
+
+          case "mountain-path":
+            // Winding path markers
+            drawPixelRect(x - 10, y - 3, 4, 6, "#8a8a6a");
+            drawPixelRect(x - 4, y - 6, 4, 6, "#7a7a5a");
+            drawPixelRect(x + 2, y - 2, 4, 6, "#8a8a6a");
+            drawPixelRect(x + 8, y - 5, 4, 6, "#7a7a5a");
+            // Path dots
+            ctx.fillStyle = "#a09a80";
+            ctx.fillRect(x - 8, y + 4, 20, 2);
+            break;
+
+          case "upstream":
+            // River bend with small dam/stones
+            drawPixelRect(x - 8, y - 6, 4, 10, "#6a7a6a");
+            drawPixelRect(x - 2, y - 8, 4, 12, "#7a8a7a");
+            drawPixelRect(x + 4, y - 4, 4, 8, "#5a6a5a");
+            // Water effect
+            ctx.fillStyle = "rgba(60,140,200,0.6)";
+            ctx.fillRect(x - 10, y + 4, 24, 3);
+            break;
+
+          case "church":
+            // Church with cross
+            drawPixelRect(x - 8, y - 12, 16, 16, "#9a8a7a");
+            drawPixelRect(x - 10, y - 6, 20, 4, "#8a7a6a");
+            // Roof
+            ctx.fillStyle = "#6a4a3a";
+            ctx.beginPath();
+            ctx.moveTo(x - 10, y - 12);
+            ctx.lineTo(x, y - 22);
+            ctx.lineTo(x + 10, y - 12);
+            ctx.fill();
+            // Cross
+            drawPixelRect(x - 1, y - 28, 2, 8, "#c8b88a");
+            drawPixelRect(x - 3, y - 26, 6, 2, "#c8b88a");
+            break;
+
+          case "bridge":
+            // Bridge structure
+            drawPixelRect(x - 18, y - 4, 36, 8, "#8a7a6a");
+            drawPixelRect(x - 20, y - 8, 4, 12, "#7a6a5a");
+            drawPixelRect(x + 16, y - 8, 4, 12, "#7a6a5a");
+            // Railings
+            drawPixelRect(x - 16, y - 8, 32, 2, "#9a8a7a");
+            // Water under bridge
+            ctx.fillStyle = "rgba(40,100,180,0.5)";
+            ctx.fillRect(x - 14, y + 4, 28, 4);
+            break;
+
+          case "shopping":
+            // Row of shops
+            drawPixelRect(x - 14, y - 8, 8, 12, "#aa6040");
+            drawPixelRect(x - 4, y - 10, 8, 14, "#c08050");
+            drawPixelRect(x + 6, y - 6, 8, 10, "#b07048");
+            // Signs
+            drawPixelRect(x - 12, y - 4, 4, 3, "#e0d040");
+            drawPixelRect(x - 2, y - 6, 4, 3, "#e0d040");
+            drawPixelRect(x + 8, y - 2, 4, 3, "#e0d040");
+            break;
+
+          case "station":
+            // Station building
+            drawPixelRect(x - 16, y - 10, 32, 14, "#7a7a8a");
+            drawPixelRect(x - 12, y - 14, 24, 5, "#6a6a7a");
+            // Platform
+            drawPixelRect(x - 20, y + 2, 40, 4, "#5a5a6a");
+            // Clock
+            drawPixelRect(x - 2, y - 12, 4, 4, "#e0e0e0");
+            // Track lines
+            ctx.fillStyle = "#4a4a5a";
+            ctx.fillRect(x - 20, y + 6, 40, 2);
+            ctx.fillRect(x - 20, y + 9, 40, 2);
+            break;
+
+          case "port":
+            // Dock/pier
+            drawPixelRect(x - 14, y - 6, 28, 4, "#7a6a5a");
+            drawPixelRect(x - 10, y - 2, 4, 10, "#6a5a4a");
+            drawPixelRect(x + 6, y - 2, 4, 10, "#6a5a4a");
+            // Boat
+            ctx.fillStyle = "#8a5a3a";
+            ctx.beginPath();
+            ctx.moveTo(x - 8, y + 6);
+            ctx.lineTo(x + 8, y + 6);
+            ctx.lineTo(x + 6, y + 10);
+            ctx.lineTo(x - 6, y + 10);
+            ctx.fill();
+            // Mast
+            drawPixelRect(x - 1, y - 2, 2, 10, "#aa9a8a");
+            break;
+
+          case "warehouse":
+            // Iron warehouse (鐵皮屋)
+            drawPixelRect(x - 16, y - 12, 32, 18, "#5a6a7a");
+            // Corrugated roof
+            ctx.fillStyle = "#4a5a6a";
+            for (let rx = x - 16; rx < x + 16; rx += 4) {
+              ctx.fillRect(rx, y - 14, 2, 3);
+            }
+            drawPixelRect(x - 18, y - 16, 36, 4, "#4a5a6a");
+            // Door
+            drawPixelRect(x - 4, y - 4, 8, 10, "#3a3a3a");
+            // Rust marks
+            ctx.fillStyle = "#8a5a3a";
+            ctx.fillRect(x - 12, y - 8, 3, 2);
+            ctx.fillRect(x + 8, y - 6, 2, 3);
+            break;
+
+          case "river-mouth":
+            // River mouth / estuary
+            ctx.fillStyle = "rgba(40,120,200,0.6)";
+            ctx.beginPath();
+            ctx.moveTo(x - 14, y - 8);
+            ctx.lineTo(x + 14, y - 8);
+            ctx.lineTo(x + 20, y + 8);
+            ctx.lineTo(x - 20, y + 8);
+            ctx.fill();
+            // Ley line glow
+            ctx.fillStyle = "rgba(100,200,255,0.3)";
+            ctx.fillRect(x - 10, y - 4, 20, 8);
+            // Stone markers
+            drawPixelRect(x - 16, y - 4, 4, 6, "#6a6a6a");
+            drawPixelRect(x + 12, y - 2, 4, 5, "#7a7a7a");
+            break;
+
+          case "aqueduct":
+            // Underground tunnel entrance
+            ctx.fillStyle = "#4a4a4a";
+            ctx.beginPath();
+            ctx.arc(x, y - 2, 10, Math.PI, 0);
+            ctx.fillRect(x - 10, y - 2, 20, 8);
+            ctx.fill();
+            // Dark opening
+            ctx.fillStyle = "#1a1a1a";
+            ctx.beginPath();
+            ctx.arc(x, y - 1, 7, Math.PI, 0);
+            ctx.fillRect(x - 7, y - 1, 14, 5);
+            ctx.fill();
+            // Grate
+            ctx.fillStyle = "#6a6a6a";
+            ctx.fillRect(x - 5, y - 4, 2, 6);
+            ctx.fillRect(x + 3, y - 4, 2, 6);
+            break;
+        }
+
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 1;
+
+        // Location name label
+        const labelAlpha = isDim ? 0.3 : isHover || isSelected || isAdjacent ? 1 : 0.75;
+        ctx.fillStyle = `rgba(224,216,200,${labelAlpha})`;
+        ctx.font = isSelected ? 'bold 12px "MS Gothic", monospace' : '11px "MS Gothic", monospace';
+        ctx.textAlign = "center";
+        ctx.fillText(loc.name, x, y + 22);
+
+        // Star indicator for ley line locations
+        if (loc.id === "river-mouth" || loc.id === "upstream") {
+          ctx.fillStyle = `rgba(100,200,255,${isDim ? 0.2 : 0.6})`;
+          ctx.font = "9px monospace";
+          ctx.fillText("✦靈脈", x, y + 33);
+        }
+      }
+
+      // ===== Main Draw =====
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        drawTerrain();
+        drawRiver();
+        drawConnections();
+
+        // Draw buildings with state
+        for (const loc of MAP_DATA.locations) {
+          let state = "normal";
+          if (selectedLoc) {
+            if (loc.id === selectedLoc.id) state = "selected";
+            else if (adjacentIds.includes(loc.id)) state = "adjacent";
+            else state = "dim";
+          } else if (hoveredLoc && loc.id === hoveredLoc.id) {
+            state = "hover";
+          }
+          drawBuilding(loc, state);
+        }
+
+        animFrame++;
+        requestAnimationFrame(draw);
+      }
+
+      // ===== Interaction =====
+      function getMouseLoc(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = W / rect.width;
+        const scaleY = H / rect.height;
+        const mx = (e.clientX - rect.left) * scaleX;
+        const my = (e.clientY - rect.top) * scaleY;
+
+        let closest = null;
+        let minD = 35; // hit radius
+        for (const loc of MAP_DATA.locations) {
+          const d = dist(mx, my, loc.x, loc.y);
+          if (d < minD) {
+            minD = d;
+            closest = loc;
+          }
+        }
+        return closest;
+      }
+
+      canvas.addEventListener("mousemove", (e) => {
+        const loc = getMouseLoc(e);
+        hoveredLoc = loc;
+
+        if (loc) {
+          const stars = "★".repeat(loc.stars) + "☆".repeat(5 - loc.stars);
+          const zoneNames = { mountain: "山側", town: "市街", sea: "海側", global: "全域" };
+          tooltip.innerHTML = `
+      <div class="loc-name">${loc.name}</div>
+      <div class="loc-zone">${zoneNames[loc.zone]}</div>
+      <div class="loc-func">${loc.func}</div>
+      <div class="loc-desc">${loc.desc}</div>
+      <div class="loc-stars">${stars}</div>
+    `;
+          tooltip.style.display = "block";
+
+          // Position tooltip
+          const tx = e.clientX + 16;
+          const ty = e.clientY - 10;
+          const tRect = tooltip.getBoundingClientRect();
+          tooltip.style.left =
+            (tx + tRect.width > window.innerWidth ? e.clientX - tRect.width - 10 : tx) + "px";
+          tooltip.style.top =
+            (ty + tRect.height > window.innerHeight ? e.clientY - tRect.height - 10 : ty) + "px";
+
+          canvas.style.cursor = "pointer";
+        } else {
+          tooltip.style.display = "none";
+          canvas.style.cursor = "crosshair";
+        }
+      });
+
+      canvas.addEventListener("click", (e) => {
+        const loc = getMouseLoc(e);
+        if (loc) {
+          if (selectedLoc && selectedLoc.id === loc.id) {
+            // Deselect
+            selectedLoc = null;
+            adjacentIds = [];
+          } else {
+            selectedLoc = loc;
+            adjacentIds = getAdjacentIds(loc.id);
+          }
+        } else {
+          selectedLoc = null;
+          adjacentIds = [];
+        }
+      });
+
+      canvas.addEventListener("mouseleave", () => {
+        hoveredLoc = null;
+        tooltip.style.display = "none";
+      });
+
+      // Start
+      draw();
+    </script>
+  </body>
+</html>
