@@ -13,7 +13,7 @@ afterEach(() => {
 describe("NightHud", () => {
   it("renders night number", () => {
     render(<NightHud nightNumber={3} phase="free_action" phaseEndsAt={Date.now() + 60000} />);
-    expect(screen.getByText("Night 3")).toBeInTheDocument();
+    expect(screen.getByText("第 3 夜")).toBeInTheDocument();
   });
 
   it("renders free_action phase label in 繁中", () => {

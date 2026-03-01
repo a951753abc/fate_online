@@ -170,7 +170,7 @@ describe("useGameState", () => {
       mockSocket.__simulateEvent("game:moveResult", { success: false } satisfies MoveResultPayload);
     });
 
-    expect(result.current.moveError).toBe("Move failed");
+    expect(result.current.moveError).toBe("移動失敗");
   });
 
   it("accumulates game:encounter events", () => {

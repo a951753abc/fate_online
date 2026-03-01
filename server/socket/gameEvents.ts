@@ -11,13 +11,13 @@ export function registerGameEvents(io: Server, socket: Socket): void {
     try {
       const code = await getPlayerRoom(playerId);
       if (!code) {
-        socket.emit(ServerEvents.GAME_MOVE_RESULT, { success: false, error: "Not in a room" });
+        socket.emit(ServerEvents.GAME_MOVE_RESULT, { success: false, error: "不在任何房間中" });
         return;
       }
 
       const state = await getGameState(code);
       if (!state || state.status !== "active") {
-        socket.emit(ServerEvents.GAME_MOVE_RESULT, { success: false, error: "Game not active" });
+        socket.emit(ServerEvents.GAME_MOVE_RESULT, { success: false, error: "遊戲未在進行中" });
         return;
       }
 
@@ -26,7 +26,7 @@ export function registerGameEvents(io: Server, socket: Socket): void {
       if (!character) {
         socket.emit(ServerEvents.GAME_MOVE_RESULT, {
           success: false,
-          error: "Character not found",
+          error: "找不到角色",
         });
         return;
       }
@@ -40,7 +40,7 @@ export function registerGameEvents(io: Server, socket: Socket): void {
     } catch {
       socket.emit(ServerEvents.GAME_MOVE_RESULT, {
         success: false,
-        error: "Failed to process move",
+        error: "移動處理失敗",
       });
     }
   });

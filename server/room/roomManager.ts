@@ -70,16 +70,16 @@ export async function joinRoom(
 
   const roomData = await redis.hgetall(roomKey(code));
   if (!roomData.status) {
-    return { success: false, error: "Room not found" };
+    return { success: false, error: "找不到房間" };
   }
   if (roomData.status !== "waiting") {
-    return { success: false, error: "Game already started" };
+    return { success: false, error: "遊戲已開始" };
   }
 
   const maxPlayers = parseInt(roomData.maxGroups, 10) * 2;
   const playerCount = await redis.hlen(playersKey(code));
   if (playerCount >= maxPlayers) {
-    return { success: false, error: "Room is full" };
+    return { success: false, error: "房間已滿" };
   }
 
   const player: InternalPlayer = Object.freeze({
@@ -203,14 +203,14 @@ export async function getPlayerRoom(playerId: string): Promise<string | null> {
 
 export async function canStartGame(code: string): Promise<{ canStart: boolean; error?: string }> {
   const state = await getRoomState(code);
-  if (!state) return { canStart: false, error: "Room not found" };
-  if (state.status !== "waiting") return { canStart: false, error: "Game already started" };
+  if (!state) return { canStart: false, error: "找不到房間" };
+  if (state.status !== "waiting") return { canStart: false, error: "遊戲已開始" };
 
   const playerCount = state.players.length;
   if (playerCount < state.minHumanPairs * 2) {
     return {
       canStart: false,
-      error: `Need at least ${state.minHumanPairs * 2} players (${playerCount} joined)`,
+      error: `至少需要 ${state.minHumanPairs * 2} 名玩家（目前 ${playerCount} 人）`,
     };
   }
 
@@ -224,7 +224,7 @@ export async function canStartGame(code: string): Promise<{ canStart: boolean; e
   const servantsNeeded = Math.max(0, pairs - servants);
 
   if (mastersNeeded + servantsNeeded > any) {
-    return { canStart: false, error: "Cannot balance roles with current preferences" };
+    return { canStart: false, error: "無法以目前的偏好分配角色" };
   }
 
   return { canStart: true };

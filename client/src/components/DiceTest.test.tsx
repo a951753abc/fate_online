@@ -14,7 +14,7 @@ describe("DiceTest", () => {
   it("renders roll button", () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     render(<DiceTest socket={mockSocket as any} />);
-    expect(screen.getByText("Roll 2D6")).toBeInTheDocument();
+    expect(screen.getByText("擲 2D6")).toBeInTheDocument();
   });
 
   it("emits dice:roll on button click", async () => {
@@ -22,7 +22,7 @@ describe("DiceTest", () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     render(<DiceTest socket={mockSocket as any} />);
 
-    await user.click(screen.getByText("Roll 2D6"));
+    await user.click(screen.getByText("擲 2D6"));
 
     expect(mockSocket.emit).toHaveBeenCalledWith("dice:roll", {
       count: 2,
@@ -55,6 +55,6 @@ describe("DiceTest", () => {
 
   it("renders without socket (null)", () => {
     render(<DiceTest socket={null} />);
-    expect(screen.getByText("Roll 2D6")).toBeInTheDocument();
+    expect(screen.getByText("擲 2D6")).toBeInTheDocument();
   });
 });

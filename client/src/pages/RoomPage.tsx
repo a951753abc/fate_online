@@ -43,9 +43,9 @@ export function RoomPage() {
   if (!socket) {
     return (
       <div style={{ maxWidth: "600px", margin: "80px auto", padding: "24px" }}>
-        <p>Not connected. Please go back to lobby.</p>
+        <p>尚未連線，請返回大廳。</p>
         <button onClick={() => navigate("/")} style={{ padding: "8px 16px", cursor: "pointer" }}>
-          Back to Lobby
+          返回大廳
         </button>
       </div>
     );
@@ -54,7 +54,7 @@ export function RoomPage() {
   if (!roomState) {
     return (
       <div style={{ maxWidth: "600px", margin: "80px auto", padding: "24px" }}>
-        <p>Loading room {code}...</p>
+        <p>載入房間 {code}...</p>
       </div>
     );
   }
@@ -62,14 +62,14 @@ export function RoomPage() {
   return (
     <div style={{ maxWidth: "600px", margin: "40px auto", padding: "24px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1>Room: {roomState.code}</h1>
+        <h1>房間：{roomState.code}</h1>
         <button onClick={handleLeave} style={{ padding: "8px 16px", cursor: "pointer" }}>
-          Leave
+          離開
         </button>
       </div>
 
       <p>
-        Players: {roomState.players.length} / {roomState.maxGroups * 2}
+        玩家：{roomState.players.length} / {roomState.maxGroups * 2}
       </p>
 
       <PlayerList
@@ -80,7 +80,7 @@ export function RoomPage() {
       />
 
       <div style={{ marginTop: "16px" }}>
-        <h3>Your Role Preference</h3>
+        <h3>角色偏好</h3>
         <RoleSelector current={currentPlayer?.rolePreference ?? "any"} onChange={setRole} />
       </div>
 
@@ -99,7 +99,7 @@ export function RoomPage() {
               fontSize: "1.1em",
             }}
           >
-            Start Game
+            開始遊戲
           </button>
         </div>
       )}
@@ -108,9 +108,9 @@ export function RoomPage() {
         <div
           style={{ marginTop: "24px", padding: "16px", background: "#e8f5e9", borderRadius: "8px" }}
         >
-          <h3>Game Started!</h3>
-          <p>Human pairs: {pairing.humanPairs.length}</p>
-          <p>NPC groups: {pairing.npcGroupCount}</p>
+          <h3>遊戲已開始！</h3>
+          <p>人類組數：{pairing.humanPairs.length}</p>
+          <p>NPC 組數：{pairing.npcGroupCount}</p>
         </div>
       )}
 

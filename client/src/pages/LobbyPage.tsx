@@ -50,7 +50,7 @@ export function LobbyPage() {
 
       <div style={{ marginBottom: "24px" }}>
         <label>
-          Nickname:
+          暱稱：
           <input
             type="text"
             value={nickname}
@@ -67,13 +67,13 @@ export function LobbyPage() {
           disabled={!nickname.trim() || isConnecting}
           style={{ padding: "12px", cursor: "pointer" }}
         >
-          Create Room
+          建立房間
         </button>
 
         <div style={{ display: "flex", gap: "8px" }}>
           <input
             type="text"
-            placeholder="Room Code"
+            placeholder="房間代碼"
             value={joinCode}
             onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
             maxLength={6}
@@ -84,7 +84,7 @@ export function LobbyPage() {
             disabled={!nickname.trim() || !joinCode.trim() || isConnecting}
             style={{ padding: "12px", cursor: "pointer" }}
           >
-            Join
+            加入
           </button>
         </div>
       </div>

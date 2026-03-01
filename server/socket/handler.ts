@@ -11,10 +11,10 @@ export function setupSocketHandler(io: Server): void {
   io.use((socket, next) => {
     const nickname = socket.handshake.auth.nickname;
     if (typeof nickname !== "string" || nickname.trim().length === 0) {
-      return next(new Error("Nickname is required"));
+      return next(new Error("請輸入暱稱"));
     }
     if (nickname.length > 20) {
-      return next(new Error("Nickname must be 20 characters or less"));
+      return next(new Error("暱稱不可超過 20 字"));
     }
 
     socket.data.playerId = crypto.randomUUID();
@@ -38,14 +38,14 @@ export function setupSocketHandler(io: Server): void {
           const modifier = payload.modifier ?? 0;
 
           if (count < 1 || count > 10 || sides < 2 || sides > 100) {
-            emitRoomError(socket, { message: "Invalid dice parameters" });
+            emitRoomError(socket, { message: "無效的骰子參數" });
             return;
           }
 
           const result = rollDice(count, sides, modifier);
           emitDiceResult(socket, result);
         } catch {
-          emitRoomError(socket, { message: "Dice roll failed" });
+          emitRoomError(socket, { message: "擲骰失敗" });
         }
       },
     );

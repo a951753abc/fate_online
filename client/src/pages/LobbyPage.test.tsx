@@ -37,10 +37,10 @@ describe("LobbyPage", () => {
     );
 
     expect(screen.getByText("聖杯戰爭 Online")).toBeInTheDocument();
-    expect(screen.getByText("Nickname:")).toBeInTheDocument();
-    expect(screen.getByText("Create Room")).toBeInTheDocument();
-    expect(screen.getByText("Join")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("Room Code")).toBeInTheDocument();
+    expect(screen.getByText("暱稱：")).toBeInTheDocument();
+    expect(screen.getByText("建立房間")).toBeInTheDocument();
+    expect(screen.getByText("加入")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("房間代碼")).toBeInTheDocument();
   });
 
   it("Create Room button is disabled without nickname", () => {
@@ -50,7 +50,7 @@ describe("LobbyPage", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("Create Room")).toBeDisabled();
+    expect(screen.getByText("建立房間")).toBeDisabled();
   });
 
   it("Join button is disabled without nickname or code", () => {
@@ -60,7 +60,7 @@ describe("LobbyPage", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("Join")).toBeDisabled();
+    expect(screen.getByText("加入")).toBeDisabled();
   });
 
   it("enables Create Room after entering nickname", async () => {
@@ -71,8 +71,8 @@ describe("LobbyPage", () => {
       </MemoryRouter>,
     );
 
-    await user.type(screen.getByRole("textbox", { name: /nickname/i }), "Alice");
-    expect(screen.getByText("Create Room")).not.toBeDisabled();
+    await user.type(screen.getByRole("textbox", { name: /暱稱/ }), "Alice");
+    expect(screen.getByText("建立房間")).not.toBeDisabled();
   });
 
   it("calls connect on Create Room click", async () => {
@@ -83,8 +83,8 @@ describe("LobbyPage", () => {
       </MemoryRouter>,
     );
 
-    await user.type(screen.getByRole("textbox", { name: /nickname/i }), "Alice");
-    await user.click(screen.getByText("Create Room"));
+    await user.type(screen.getByRole("textbox", { name: /暱稱/ }), "Alice");
+    await user.click(screen.getByText("建立房間"));
 
     expect(mockConnect).toHaveBeenCalledWith("Alice");
   });
@@ -97,7 +97,7 @@ describe("LobbyPage", () => {
       </MemoryRouter>,
     );
 
-    const codeInput = screen.getByPlaceholderText("Room Code");
+    const codeInput = screen.getByPlaceholderText("房間代碼");
     await user.type(codeInput, "abc123");
     expect(codeInput).toHaveValue("ABC123");
   });

@@ -66,14 +66,14 @@ describe("RoomPage", () => {
     mockSocket = null;
     renderRoomPage();
 
-    expect(screen.getByText("Not connected. Please go back to lobby.")).toBeInTheDocument();
-    expect(screen.getByText("Back to Lobby")).toBeInTheDocument();
+    expect(screen.getByText("尚未連線，請返回大廳。")).toBeInTheDocument();
+    expect(screen.getByText("返回大廳")).toBeInTheDocument();
   });
 
   it("shows loading when socket exists but no room state yet", () => {
     renderRoomPage();
 
-    expect(screen.getByText("Loading room ABC123...")).toBeInTheDocument();
+    expect(screen.getByText("載入房間 ABC123...")).toBeInTheDocument();
   });
 
   it("renders room with players when state is available", () => {
@@ -91,8 +91,8 @@ describe("RoomPage", () => {
 
     renderRoomPage();
 
-    expect(screen.getByText("Room: ABC123")).toBeInTheDocument();
-    expect(screen.getByText("Players: 2 / 14")).toBeInTheDocument();
+    expect(screen.getByText("房間：ABC123")).toBeInTheDocument();
+    expect(screen.getByText("玩家：2 / 14")).toBeInTheDocument();
     expect(screen.getByText(/Alice/)).toBeInTheDocument();
     expect(screen.getByText(/Bob/)).toBeInTheDocument();
   });
@@ -111,7 +111,7 @@ describe("RoomPage", () => {
 
     renderRoomPage();
 
-    expect(screen.getByText("Start Game")).toBeInTheDocument();
+    expect(screen.getByText("開始遊戲")).toBeInTheDocument();
   });
 
   it("hides Start Game button for non-host", () => {
@@ -129,7 +129,7 @@ describe("RoomPage", () => {
 
     renderRoomPage();
 
-    expect(screen.queryByText("Start Game")).not.toBeInTheDocument();
+    expect(screen.queryByText("開始遊戲")).not.toBeInTheDocument();
   });
 
   it("disables Start Game when below minimum players", () => {
@@ -146,7 +146,7 @@ describe("RoomPage", () => {
 
     renderRoomPage();
 
-    expect(screen.getByText("Start Game")).toBeDisabled();
+    expect(screen.getByText("開始遊戲")).toBeDisabled();
   });
 
   it("shows pairing result when game started", () => {
@@ -167,9 +167,9 @@ describe("RoomPage", () => {
 
     renderRoomPage();
 
-    expect(screen.getByText("Game Started!")).toBeInTheDocument();
-    expect(screen.getByText("Human pairs: 1")).toBeInTheDocument();
-    expect(screen.getByText("NPC groups: 6")).toBeInTheDocument();
+    expect(screen.getByText("遊戲已開始！")).toBeInTheDocument();
+    expect(screen.getByText("人類組數：1")).toBeInTheDocument();
+    expect(screen.getByText("NPC 組數：6")).toBeInTheDocument();
   });
 
   it("shows error message", () => {
@@ -183,11 +183,11 @@ describe("RoomPage", () => {
       maxGroups: 7,
       minHumanPairs: 2,
     };
-    mockError = "Cannot balance roles";
+    mockError = "無法以目前的偏好分配角色";
 
     renderRoomPage();
 
-    expect(screen.getByText("Cannot balance roles")).toBeInTheDocument();
+    expect(screen.getByText("無法以目前的偏好分配角色")).toBeInTheDocument();
   });
 
   it("renders role selector", () => {
@@ -204,10 +204,11 @@ describe("RoomPage", () => {
 
     renderRoomPage();
 
-    expect(screen.getByText("Your Role Preference")).toBeInTheDocument();
-    expect(screen.getByText("Master")).toBeInTheDocument();
-    expect(screen.getByText("Servant")).toBeInTheDocument();
-    expect(screen.getByText("Any")).toBeInTheDocument();
+    expect(screen.getByText("角色偏好")).toBeInTheDocument();
+    // RoleSelector buttons (マスター/サーヴァント may also appear in PlayerList)
+    expect(screen.getAllByText("マスター").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("サーヴァント").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("皆可").length).toBeGreaterThanOrEqual(1);
   });
 
   it("calls leaveRoom and navigates to lobby on Leave click", async () => {
@@ -226,7 +227,7 @@ describe("RoomPage", () => {
 
     renderRoomPage();
 
-    await user.click(screen.getByText("Leave"));
+    await user.click(screen.getByText("離開"));
     expect(mockLeaveRoom).toHaveBeenCalled();
   });
 
@@ -244,7 +245,7 @@ describe("RoomPage", () => {
 
     renderRoomPage();
 
-    expect(screen.getByText("Dice Test (Dev)")).toBeInTheDocument();
-    expect(screen.getByText("Roll 2D6")).toBeInTheDocument();
+    expect(screen.getByText("骰子測試（開發用）")).toBeInTheDocument();
+    expect(screen.getByText("擲 2D6")).toBeInTheDocument();
   });
 });

@@ -152,7 +152,7 @@ describe("roomManager", () => {
     it("fails when room not found", async () => {
       const result = await joinRoom("XXXXXX", "p1", "s1", "Player");
       expect(result.success).toBe(false);
-      expect(result.error).toBe("Room not found");
+      expect(result.error).toBe("找不到房間");
     });
 
     it("fails when game already started", async () => {
@@ -162,7 +162,7 @@ describe("roomManager", () => {
 
       const result = await joinRoom(code, "p2", "s2", "Player");
       expect(result.success).toBe(false);
-      expect(result.error).toBe("Game already started");
+      expect(result.error).toBe("遊戲已開始");
     });
 
     it("fails when room is full", async () => {
@@ -185,7 +185,7 @@ describe("roomManager", () => {
 
       const result = await joinRoom(code, "extra", "s-extra", "Extra");
       expect(result.success).toBe(false);
-      expect(result.error).toBe("Room is full");
+      expect(result.error).toBe("房間已滿");
     });
   });
 
@@ -282,7 +282,7 @@ describe("roomManager", () => {
       const { code } = await createRoom("host", "s-host", "Host");
       const check = await canStartGame(code);
       expect(check.canStart).toBe(false);
-      expect(check.error).toContain("Need at least");
+      expect(check.error).toContain("至少需要");
     });
 
     it("can start with 4 balanced players", async () => {
@@ -302,7 +302,7 @@ describe("roomManager", () => {
     it("cannot start non-existent room", async () => {
       const check = await canStartGame("XXXXXX");
       expect(check.canStart).toBe(false);
-      expect(check.error).toBe("Room not found");
+      expect(check.error).toBe("找不到房間");
     });
 
     it("can start with all-any preferences", async () => {
@@ -327,7 +327,7 @@ describe("roomManager", () => {
 
       const check = await canStartGame(code);
       expect(check.canStart).toBe(false);
-      expect(check.error).toContain("Cannot balance roles");
+      expect(check.error).toContain("無法以目前的偏好");
     });
   });
 

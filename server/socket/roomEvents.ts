@@ -29,7 +29,7 @@ import {
   buildGroupViews,
   buildInitPayloadForPlayer,
 } from "../game/initializeGame.js";
-import { NightCycleEngine } from "../game/nightCycle.js";
+import { NightCycleEngine, DEFAULT_NIGHT_CONFIG } from "../game/nightCycle.js";
 import { registerGame } from "../game/activeGames.js";
 
 // Track disconnect timers for reconnection grace period
@@ -47,7 +47,7 @@ export function registerRoomEvents(io: Server, socket: Socket): void {
       const state = await getRoomState(code);
       if (state) emitRoomState(io, code, state);
     } catch {
-      emitRoomError(socket, { message: "Failed to create room" });
+      emitRoomError(socket, { message: "建立房間失敗" });
     }
   });
 
@@ -67,7 +67,7 @@ export function registerRoomEvents(io: Server, socket: Socket): void {
       const state = await getRoomState(code);
       if (state) emitRoomState(io, code, state);
     } catch {
-      emitRoomError(socket, { message: "Failed to join room" });
+      emitRoomError(socket, { message: "加入房間失敗" });
     }
   });
 
@@ -102,7 +102,7 @@ export function registerRoomEvents(io: Server, socket: Socket): void {
     // Only host can start
     const player = state.players.find((p) => p.id === playerId);
     if (!player?.isHost) {
-      emitRoomError(socket, { message: "Only host can start the game" });
+      emitRoomError(socket, { message: "只有房主可以開始遊戲" });
       return;
     }
 
@@ -121,7 +121,8 @@ export function registerRoomEvents(io: Server, socket: Socket): void {
     const groups = buildGroupsFromPairing(pairing);
     const startingPositions = assignStartingPositions(groups.length);
     const characters = buildCharactersFromGroups(groups, startingPositions);
-    const gameState = await initializeGame(code, groups, characters);
+    const phaseEndsAt = Date.now() + DEFAULT_NIGHT_CONFIG.freeActionDurationMs;
+    const gameState = await initializeGame(code, groups, characters, phaseEndsAt);
 
     // Build nickname map for group views
     const nicknames = new Map<string, string>();
@@ -172,12 +173,12 @@ export function registerRoomEvents(io: Server, socket: Socket): void {
 
     const player = state.players.find((p) => p.id === playerId);
     if (!player?.isHost) {
-      emitRoomError(socket, { message: "Only host can kick players" });
+      emitRoomError(socket, { message: "只有房主可以踢出玩家" });
       return;
     }
 
     if (payload.targetPlayerId === playerId) {
-      emitRoomError(socket, { message: "Cannot kick yourself" });
+      emitRoomError(socket, { message: "無法踢出自己" });
       return;
     }
 
@@ -187,7 +188,7 @@ export function registerRoomEvents(io: Server, socket: Socket): void {
     for (const s of kickedSockets) {
       if (s.data.playerId === payload.targetPlayerId) {
         s.leave(code);
-        s.emit("room:error", { message: "You have been kicked from the room" });
+        s.emit("room:error", { message: "你已被踢出房間" });
       }
     }
 

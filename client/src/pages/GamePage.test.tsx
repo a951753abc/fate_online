@@ -94,12 +94,12 @@ describe("GamePage", () => {
   it("shows 'Not connected' when socket is null", () => {
     mockSocketValue = null;
     renderGamePage();
-    expect(screen.getByText("Not connected.")).toBeInTheDocument();
+    expect(screen.getByText("尚未連線。")).toBeInTheDocument();
   });
 
   it("shows loading when no gameData", () => {
     renderGamePage();
-    expect(screen.getByText("Loading game ABC123...")).toBeInTheDocument();
+    expect(screen.getByText("載入遊戲 ABC123...")).toBeInTheDocument();
   });
 
   it("renders NightHud when gameData and nightState exist", () => {
@@ -128,7 +128,7 @@ describe("GamePage", () => {
     mockGameState.positions = mockGameData.positions;
     renderGamePage();
 
-    expect(screen.getByText("master")).toBeInTheDocument();
+    expect(screen.getByText("マスター")).toBeInTheDocument();
     expect(screen.getByText("0")).toBeInTheDocument();
     expect(screen.getByText("bridge")).toBeInTheDocument();
   });
@@ -149,7 +149,7 @@ describe("GamePage", () => {
     mockGameState.moveSubmitted = true;
     renderGamePage();
 
-    expect(screen.getByText("Move submitted. Waiting...")).toBeInTheDocument();
+    expect(screen.getByText("移動已提交，等待結算...")).toBeInTheDocument();
   });
 
   it("shows move error message", () => {
@@ -169,19 +169,19 @@ describe("GamePage", () => {
     mockGameState.encounters = [{ locationId: "bridge", groupIndices: [0, 1] }];
     renderGamePage();
 
-    expect(screen.getByText("Encounters:")).toBeInTheDocument();
-    expect(screen.getByText("bridge: Groups 0 vs 1")).toBeInTheDocument();
+    expect(screen.getByText("遭遇：")).toBeInTheDocument();
+    expect(screen.getByText(/bridge：第 0 組 vs 第 1 組/)).toBeInTheDocument();
   });
 
   it("renders night report panel", () => {
     mockGameState.gameData = mockGameData;
     mockGameState.nightState = mockGameData.night;
     mockGameState.positions = mockGameData.positions;
-    mockGameState.nightReport = { nightNumber: 1, events: ["A quiet night."] };
+    mockGameState.nightReport = { nightNumber: 1, events: ["平靜的一夜。"] };
     renderGamePage();
 
-    expect(screen.getByText("Night 1 Report:")).toBeInTheDocument();
-    expect(screen.getByText("A quiet night.")).toBeInTheDocument();
+    expect(screen.getByText("第 1 夜報告：")).toBeInTheDocument();
+    expect(screen.getByText("平靜的一夜。")).toBeInTheDocument();
   });
 
   it("renders quiet night message when report has no events", () => {
@@ -191,7 +191,7 @@ describe("GamePage", () => {
     mockGameState.nightReport = { nightNumber: 1, events: [] };
     renderGamePage();
 
-    expect(screen.getByText("A quiet night.")).toBeInTheDocument();
+    expect(screen.getByText("平靜的一夜。")).toBeInTheDocument();
   });
 
   it("renders game ended overlay for grail_rampage", () => {
@@ -201,7 +201,7 @@ describe("GamePage", () => {
     mockGameState.gameEnded = { reason: "grail_rampage" };
     renderGamePage();
 
-    expect(screen.getByText("Game Over")).toBeInTheDocument();
+    expect(screen.getByText("遊戲結束")).toBeInTheDocument();
     expect(screen.getByText("聖杯暴走 — 全員敗北")).toBeInTheDocument();
   });
 
@@ -212,8 +212,8 @@ describe("GamePage", () => {
     mockGameState.gameEnded = { reason: "last_pair", winnerGroupIndex: 2 };
     renderGamePage();
 
-    expect(screen.getByText("Game Over")).toBeInTheDocument();
-    expect(screen.getByText("Group 2 wins!")).toBeInTheDocument();
+    expect(screen.getByText("遊戲結束")).toBeInTheDocument();
+    expect(screen.getByText("第 2 組勝利！")).toBeInTheDocument();
   });
 
   it("renders game ended overlay for all_eliminated", () => {
@@ -223,6 +223,6 @@ describe("GamePage", () => {
     mockGameState.gameEnded = { reason: "all_eliminated" };
     renderGamePage();
 
-    expect(screen.getByText("All eliminated")).toBeInTheDocument();
+    expect(screen.getByText("全員脫落")).toBeInTheDocument();
   });
 });

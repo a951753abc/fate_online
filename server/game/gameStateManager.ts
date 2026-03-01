@@ -24,13 +24,14 @@ export async function initializeGame(
   roomCode: string,
   groups: readonly GroupState[],
   characters: readonly CharacterState[],
+  phaseEndsAt?: number,
 ): Promise<GameState> {
   const redis = getRedis();
-  const now = Date.now();
+  const endsAt = phaseEndsAt ?? Date.now();
   const night: NightState = Object.freeze({
     nightNumber: 1,
     phase: "free_action" as NightPhase,
-    phaseEndsAt: now,
+    phaseEndsAt: endsAt,
   });
 
   const pipeline = redis.pipeline();
@@ -39,7 +40,7 @@ export async function initializeGame(
     status: "active",
     nightNumber: "1",
     nightPhase: "free_action",
-    phaseEndsAt: String(now),
+    phaseEndsAt: String(endsAt),
   });
 
   for (const group of groups) {
@@ -122,15 +123,15 @@ export async function submitMove(
     redis.smembers(destroyedKey(roomCode)),
   ]);
   if (meta.nightPhase !== "free_action") {
-    return Object.freeze({ success: false, error: "Not in free action phase" });
+    return Object.freeze({ success: false, error: "非自由行動階段" });
   }
   if (destroyed.includes(target)) {
-    return Object.freeze({ success: false, error: "Location is destroyed" });
+    return Object.freeze({ success: false, error: "該據點已崩壞" });
   }
 
   const charRaw = await redis.hget(charsKey(roomCode), characterId);
   if (!charRaw) {
-    return Object.freeze({ success: false, error: "Character not found" });
+    return Object.freeze({ success: false, error: "找不到角色" });
   }
   const char = JSON.parse(charRaw) as CharacterState;
 
@@ -142,7 +143,7 @@ export async function submitMove(
   const isAtStation = char.location === "station";
   const validMoves = getValidMoves(char.location, isAtStation);
   if (!validMoves.includes(target)) {
-    return Object.freeze({ success: false, error: "Invalid move: not reachable" });
+    return Object.freeze({ success: false, error: "無效移動：無法到達" });
   }
 
   await redis.hset(movesKey(roomCode), characterId, target);

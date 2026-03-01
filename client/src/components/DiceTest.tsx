@@ -28,9 +28,9 @@ export function DiceTest({ socket }: DiceTestProps) {
 
   return (
     <div style={{ padding: "16px", border: "1px solid #ccc", borderRadius: "8px" }}>
-      <h3>Dice Test (Dev)</h3>
+      <h3>骰子測試（開發用）</h3>
       <button onClick={roll} style={{ padding: "8px 16px", cursor: "pointer" }}>
-        Roll 2D6
+        擲 2D6
       </button>
       {result && (
         <div style={{ marginTop: "8px" }}>

@@ -189,7 +189,7 @@ describe("gameStateManager", () => {
       // m0 is at bridge, port is not adjacent to bridge
       const result = await submitMove("ROOM1", "m0", "port");
       expect(result.success).toBe(false);
-      expect(result.error).toContain("not reachable");
+      expect(result.error).toContain("無法到達");
     });
 
     it("rejects move when not in free_action phase", async () => {
@@ -197,7 +197,7 @@ describe("gameStateManager", () => {
       getHash("game:ROOM1").set("nightPhase", "encounter");
       const result = await submitMove("ROOM1", "m0", "warehouse");
       expect(result.success).toBe(false);
-      expect(result.error).toContain("free action");
+      expect(result.error).toContain("自由行動");
     });
 
     it("rejects move to destroyed location", async () => {
@@ -205,14 +205,14 @@ describe("gameStateManager", () => {
       mockSets.set("game:ROOM1:destroyed", new Set(["warehouse"]));
       const result = await submitMove("ROOM1", "m0", "warehouse");
       expect(result.success).toBe(false);
-      expect(result.error).toContain("destroyed");
+      expect(result.error).toContain("崩壞");
     });
 
     it("rejects move for nonexistent character", async () => {
       await initializeGame("ROOM1", testGroups, testCharacters);
       const result = await submitMove("ROOM1", "nobody", "bridge");
       expect(result.success).toBe(false);
-      expect(result.error).toContain("not found");
+      expect(result.error).toContain("找不到");
     });
 
     it("accepts station 2-step move", async () => {

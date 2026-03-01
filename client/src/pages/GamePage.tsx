@@ -66,7 +66,7 @@ export function GamePage() {
   if (!socket) {
     return (
       <div style={{ maxWidth: "800px", margin: "40px auto", padding: "24px" }}>
-        <p>Not connected.</p>
+        <p>尚未連線。</p>
       </div>
     );
   }
@@ -74,7 +74,7 @@ export function GamePage() {
   if (!game.gameData) {
     return (
       <div style={{ maxWidth: "800px", margin: "40px auto", padding: "24px" }}>
-        <p>Loading game {code}...</p>
+        <p>載入遊戲 {code}...</p>
       </div>
     );
   }
@@ -128,23 +128,24 @@ export function GamePage() {
       >
         <div style={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>
           <span>
-            Role: <strong>{game.gameData.yourRole}</strong>
+            角色：
+            <strong>{game.gameData.yourRole === "master" ? "マスター" : "サーヴァント"}</strong>
           </span>
           <span>
-            Group: <strong>{myGroup}</strong>
+            組別：<strong>{myGroup}</strong>
           </span>
           <span>
-            Position: <strong>{myLocation}</strong>
+            位置：<strong>{myLocation}</strong>
           </span>
           {partner && (
             <span>
-              Partner: <strong>{partner.location}</strong>
+              搭檔：<strong>{partner.location}</strong>
             </span>
           )}
         </div>
 
         {game.moveSubmitted && (
-          <div style={{ marginTop: "8px", color: "#58a6ff" }}>Move submitted. Waiting...</div>
+          <div style={{ marginTop: "8px", color: "#58a6ff" }}>移動已提交，等待結算...</div>
         )}
         {game.moveError && (
           <div style={{ marginTop: "8px", color: "#f85149" }}>{game.moveError}</div>
@@ -162,10 +163,10 @@ export function GamePage() {
             color: "#f85149",
           }}
         >
-          <strong>Encounters:</strong>
+          <strong>遭遇：</strong>
           {game.encounters.map((e, i) => (
             <div key={i}>
-              {e.locationId}: Groups {e.groupIndices.join(" vs ")}
+              {e.locationId}：第 {e.groupIndices.join(" 組 vs 第 ")} 組
             </div>
           ))}
         </div>
@@ -182,11 +183,11 @@ export function GamePage() {
             color: "#7ee787",
           }}
         >
-          <strong>Night {game.nightReport.nightNumber} Report:</strong>
+          <strong>第 {game.nightReport.nightNumber} 夜報告：</strong>
           {game.nightReport.events.length > 0 ? (
             game.nightReport.events.map((e, i) => <div key={i}>{e}</div>)
           ) : (
-            <div>A quiet night.</div>
+            <div>平靜的一夜。</div>
           )}
         </div>
       )}
@@ -204,13 +205,13 @@ export function GamePage() {
             fontSize: "1.2em",
           }}
         >
-          <strong>Game Over</strong>
+          <strong>遊戲結束</strong>
           <div>
             {game.gameEnded.reason === "grail_rampage"
               ? "聖杯暴走 — 全員敗北"
               : game.gameEnded.reason === "last_pair"
-                ? `Group ${game.gameEnded.winnerGroupIndex} wins!`
-                : "All eliminated"}
+                ? `第 ${game.gameEnded.winnerGroupIndex} 組勝利！`
+                : "全員脫落"}
           </div>
         </div>
       )}

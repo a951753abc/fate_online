@@ -43,7 +43,7 @@ export function NightHud({ nightNumber, phase, phaseEndsAt }: NightHudProps) {
         fontFamily: "monospace",
       }}
     >
-      <span style={{ fontSize: "1.1em", fontWeight: "bold" }}>Night {nightNumber}</span>
+      <span style={{ fontSize: "1.1em", fontWeight: "bold" }}>第 {nightNumber} 夜</span>
       <span style={{ color: "#ffd700" }}>{PHASE_LABELS[phase]}</span>
       <span>{remaining}</span>
     </div>

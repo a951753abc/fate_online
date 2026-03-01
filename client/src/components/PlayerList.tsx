@@ -26,17 +26,21 @@ export function PlayerList({ players, currentPlayerId, isHost, onKick }: PlayerL
         >
           <span>
             {player.nickname}
-            {player.isHost && " [Host]"}
-            {!player.isConnected && " (disconnected)"}
+            {player.isHost && "（房主）"}
+            {!player.isConnected && "（離線）"}
           </span>
           <span style={{ fontSize: "0.85em", color: "#666" }}>
-            {player.rolePreference.toUpperCase()}
+            {player.rolePreference === "master"
+              ? "マスター"
+              : player.rolePreference === "servant"
+                ? "サーヴァント"
+                : "皆可"}
             {isHost && player.id !== currentPlayerId && onKick && (
               <button
                 onClick={() => onKick(player.id)}
                 style={{ marginLeft: "8px", cursor: "pointer" }}
               >
-                Kick
+                踢出
               </button>
             )}
           </span>

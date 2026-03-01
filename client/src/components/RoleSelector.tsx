@@ -24,7 +24,7 @@ export function RoleSelector({ current, onChange }: RoleSelectorProps) {
             fontWeight: current === role ? "bold" : "normal",
           }}
         >
-          {role === "master" ? "Master" : role === "servant" ? "Servant" : "Any"}
+          {role === "master" ? "マスター" : role === "servant" ? "サーヴァント" : "皆可"}
         </button>
       ))}
     </div>

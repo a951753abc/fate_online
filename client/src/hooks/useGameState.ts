@@ -82,7 +82,7 @@ export function useGameState(
         setMoveSubmitted(true);
         setMoveError(null);
       } else {
-        setMoveError(data.error ?? "Move failed");
+        setMoveError(data.error ?? "移動失敗");
       }
     };
 

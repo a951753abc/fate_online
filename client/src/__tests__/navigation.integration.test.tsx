@@ -93,11 +93,11 @@ describe("Navigation integration: Lobby → Room", () => {
     );
 
     // Step 1: User types nickname and clicks Join
-    const nicknameInput = screen.getByLabelText("Nickname:");
+    const nicknameInput = screen.getByLabelText("暱稱：");
     await user.type(nicknameInput, "Alice");
-    const codeInput = screen.getByPlaceholderText("Room Code");
+    const codeInput = screen.getByPlaceholderText("房間代碼");
     await user.type(codeInput, "ABC123");
-    await user.click(screen.getByText("Join"));
+    await user.click(screen.getByText("加入"));
 
     // Step 2: Socket connects
     act(() => {
@@ -131,7 +131,7 @@ describe("Navigation integration: Lobby → Room", () => {
 
     // Step 7: RoomPage should now show the room — NOT stuck on "Loading"
     await waitFor(() => {
-      expect(screen.getByText("Room: ABC123")).toBeInTheDocument();
+      expect(screen.getByText("房間：ABC123")).toBeInTheDocument();
     });
     expect(screen.getByText(/Alice/)).toBeInTheDocument();
     expect(screen.getByText(/Bob/)).toBeInTheDocument();
@@ -152,9 +152,9 @@ describe("Navigation integration: Lobby → Room", () => {
     );
 
     // Fast-forward through join flow
-    await user.type(screen.getByLabelText("Nickname:"), "Alice");
-    await user.type(screen.getByPlaceholderText("Room Code"), "ABC123");
-    await user.click(screen.getByText("Join"));
+    await user.type(screen.getByLabelText("暱稱："), "Alice");
+    await user.type(screen.getByPlaceholderText("房間代碼"), "ABC123");
+    await user.click(screen.getByText("加入"));
     act(() => mockSocket.__simulateConnect());
 
     await waitFor(() => {
@@ -178,7 +178,7 @@ describe("Navigation integration: Lobby → Room", () => {
 
     // Host should see the Start Game button (p1 is host in mockRoomState)
     await waitFor(() => {
-      expect(screen.getByText("Start Game")).toBeInTheDocument();
+      expect(screen.getByText("開始遊戲")).toBeInTheDocument();
     });
   });
 });
@@ -200,9 +200,9 @@ describe("Navigation integration: Room → Game", () => {
     );
 
     // Join flow
-    await user.type(screen.getByLabelText("Nickname:"), "Alice");
-    await user.type(screen.getByPlaceholderText("Room Code"), "ABC123");
-    await user.click(screen.getByText("Join"));
+    await user.type(screen.getByLabelText("暱稱："), "Alice");
+    await user.type(screen.getByPlaceholderText("房間代碼"), "ABC123");
+    await user.click(screen.getByText("加入"));
     act(() => mockSocket.__simulateConnect());
 
     await waitFor(() => {
@@ -224,7 +224,7 @@ describe("Navigation integration: Room → Game", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText("Room: ABC123")).toBeInTheDocument();
+      expect(screen.getByText("房間：ABC123")).toBeInTheDocument();
     });
 
     // Game starts: server emits game:initialized
@@ -257,6 +257,6 @@ describe("Navigation integration: direct URL access", () => {
     );
 
     // No socket → "Not connected" (connect hasn't been called)
-    expect(screen.getByText(/Not connected/)).toBeInTheDocument();
+    expect(screen.getByText(/尚未連線/)).toBeInTheDocument();
   });
 });
