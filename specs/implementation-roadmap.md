@@ -15,13 +15,21 @@
 
 **交付物**: Git commit `3e21293`, pushed to `origin/main`
 
-## Phase 1 — 空間 + 時間
+## Phase 1 — 空間 + 時間 ✅ `v0.2.0` (2026-03-02)
 **依據**: spec-05, spec-01
-- 月白町 12 據點載入（已有 map-data.json）
-- 鄰接關係 + 移動邏輯
-- 地圖渲染（已有 Canvas 原型，轉 React 組件）
-- 夜循環系統（自由行動期 → 遭遇結算期 → 夜間結算）
-- 佔領機制
+- [x] 月白町 12 據點載入（map-data.json → mapData.ts）
+- [x] 鄰接關係 + 移動邏輯（BFS 距離、月白駅前 2 步、暗渠捷徑）
+- [x] 地圖渲染（SVG MapView 組件：據點、連線、角色標記、佔領環、崩壞）
+- [x] 夜循環系統（自由行動期 → 遭遇結算期 → 夜間結算、Night 10+ 據點崩壞、Night 14 聖杯暴走）
+- [x] 佔領機制（停留=佔領、離開=失去、爭奪=無人佔領）
+- [x] 起始據點自動分配 + 遭遇偵測
+- [x] 魔力供給距離（計算 + 夜報告顯示）
+- [x] NightHud（夜數/階段/倒數計時器）
+- [x] 247 tests (139 server + 108 client), lint/format clean
+- [x] dev.bat（一鍵啟動 Docker + server + client）
+- [x] dev-bots.ts（N 個 bot 快速測試）
+
+**交付物**: Git commits `c0ad56b`→`4c6f8a9`, pushed to `origin/main`
 
 > **Phase 1 結束時**：玩家可以進房間、看地圖、移動、佔領據點。最小可互動原型。
 
@@ -85,7 +93,7 @@
 ## 依賴鏈
 
 ```
-基礎建設 ✅ → 空間+時間 → 角色 → 戰鬥 → 通訊 → 情報迷霧 → 進階機制 → NPC → 平衡
+基礎建設 ✅ → 空間+時間 ✅ → 角色 → 戰鬥 → 通訊 → 情報迷霧 → 進階機制 → NPC → 平衡
                                    ↑                ↑                       ↑
                             第一次 playtest    第二次 playtest         正式 playtest
 ```
