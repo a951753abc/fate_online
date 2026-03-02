@@ -1,5 +1,7 @@
 // === Master Level System (千夜月姫 TRPG) ===
 
+export const MAX_LEVEL = 10;
+
 export type MasterLevelId = "magician" | "executor" | "swordsman" | "fighter" | "hunter" | "esper";
 
 export type AbilityStatKey = "body" | "perception" | "reason" | "will";

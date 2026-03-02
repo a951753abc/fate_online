@@ -7,6 +7,7 @@ import type {
   AbilityStatKey,
   MasterLevelId,
 } from "./masterTypes.js";
+import { MAX_LEVEL } from "./masterTypes.js";
 import { getMasterLevelDef, MASTER_LEVEL_IDS, DEFAULT_LEVEL_CONFIG } from "./masterLevels.js";
 
 // === Validation ===
@@ -33,11 +34,14 @@ export function validateAllocation(
     if (seen.has(entry.levelId)) {
       return `級別不可重複: ${entry.levelId}`;
     }
+    if (!Number.isInteger(entry.level)) {
+      return `級別等級必須為整數: ${entry.levelId}`;
+    }
     if (entry.level < 1) {
       return `級別等級至少為 1: ${entry.levelId}`;
     }
-    if (!Number.isInteger(entry.level)) {
-      return `級別等級必須為整數: ${entry.levelId}`;
+    if (entry.level > MAX_LEVEL) {
+      return `級別等級最多為 ${MAX_LEVEL}: ${entry.levelId}`;
     }
     seen.add(entry.levelId);
     totalLevel += entry.level;
@@ -69,23 +73,8 @@ export function computeBaseAbilities(
     will += def.baseStats.will * entry.level;
   }
 
-  // +1 free point
-  switch (freePoint) {
-    case "body":
-      body += 1;
-      break;
-    case "perception":
-      perception += 1;
-      break;
-    case "reason":
-      reason += 1;
-      break;
-    case "will":
-      will += 1;
-      break;
-  }
-
-  return Object.freeze({ body, perception, reason, will });
+  const base = { body, perception, reason, will };
+  return Object.freeze({ ...base, [freePoint]: base[freePoint] + 1 });
 }
 
 // === Ability Bonuses ===
@@ -113,30 +102,37 @@ export function computeBaseCombat(bonuses: MasterBaseStats): CombatModifiers {
   });
 }
 
+// === Combat Modifier Arithmetic ===
+
+const ZERO_COMBAT: CombatModifiers = Object.freeze({
+  melee: 0,
+  ranged: 0,
+  spirit: 0,
+  action: 0,
+  hp: 0,
+  focus: 0,
+  defense: 0,
+});
+
+function addCombatModifiers(a: CombatModifiers, b: CombatModifiers): CombatModifiers {
+  return Object.freeze({
+    melee: a.melee + b.melee,
+    ranged: a.ranged + b.ranged,
+    spirit: a.spirit + b.spirit,
+    action: a.action + b.action,
+    hp: a.hp + b.hp,
+    focus: a.focus + b.focus,
+    defense: a.defense + b.defense,
+  });
+}
+
 // === Level Modifiers ===
 
 export function computeLevelModifiers(allocation: readonly LevelAllocation[]): CombatModifiers {
-  let melee = 0;
-  let ranged = 0;
-  let spirit = 0;
-  let action = 0;
-  let hp = 0;
-  let focus = 0;
-  let defense = 0;
-
-  for (const entry of allocation) {
-    const def = getMasterLevelDef(entry.levelId);
-    const mod = def.modifiers[entry.level - 1]; // index 0 = LV1
-    melee += mod.melee;
-    ranged += mod.ranged;
-    spirit += mod.spirit;
-    action += mod.action;
-    hp += mod.hp;
-    focus += mod.focus;
-    defense += mod.defense;
-  }
-
-  return Object.freeze({ melee, ranged, spirit, action, hp, focus, defense });
+  return allocation.reduce((acc, entry) => {
+    const mod = getMasterLevelDef(entry.levelId).modifiers[entry.level - 1]; // index 0 = LV1
+    return addCombatModifiers(acc, mod);
+  }, ZERO_COMBAT);
 }
 
 // === Final Combat Values ===
@@ -145,15 +141,7 @@ export function computeFinalCombat(
   baseCombat: CombatModifiers,
   levelModifiers: CombatModifiers,
 ): CombatModifiers {
-  return Object.freeze({
-    melee: baseCombat.melee + levelModifiers.melee,
-    ranged: baseCombat.ranged + levelModifiers.ranged,
-    spirit: baseCombat.spirit + levelModifiers.spirit,
-    action: baseCombat.action + levelModifiers.action,
-    hp: baseCombat.hp + levelModifiers.hp,
-    focus: baseCombat.focus + levelModifiers.focus,
-    defense: baseCombat.defense + levelModifiers.defense,
-  });
+  return addCombatModifiers(baseCombat, levelModifiers);
 }
 
 // === All-in-one ===

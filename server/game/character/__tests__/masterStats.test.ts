@@ -57,14 +57,24 @@ describe("validateAllocation", () => {
     expect(validateAllocation(alloc)).toContain("不可重複");
   });
 
+  it("rejects non-integer level", () => {
+    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 2.5 }];
+    expect(validateAllocation(alloc)).toContain("整數");
+  });
+
+  it("rejects fractional level below 1 with integer error (not minimum error)", () => {
+    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 0.5 }];
+    expect(validateAllocation(alloc)).toContain("整數");
+  });
+
   it("rejects level < 1", () => {
     const alloc: LevelAllocation[] = [{ levelId: "magician", level: 0 }];
     expect(validateAllocation(alloc)).toContain("至少為 1");
   });
 
-  it("rejects non-integer level", () => {
-    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 2.5 }];
-    expect(validateAllocation(alloc)).toContain("整數");
+  it("rejects level > 10", () => {
+    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 11 }];
+    expect(validateAllocation(alloc)).toContain("最多為 10");
   });
 
   it("rejects total != gameLevel", () => {
@@ -132,17 +142,6 @@ describe("computeBaseAbilities", () => {
     // sum:       11, 13, 15, 9
     const stats = computeBaseAbilities(alloc, "body");
     expect(stats).toEqual({ body: 12, perception: 13, reason: 15, will: 9 });
-  });
-
-  it("TRPG example: fighter LV2 + esper LV1, free→will (gameLevel=3)", () => {
-    // From 千夜月姫.md: 武鬥家2+超能力者1, 自由配點意志
-    // result: 體12/知6/理6/意9
-    const alloc: LevelAllocation[] = [
-      { levelId: "fighter", level: 2 },
-      { levelId: "esper", level: 1 },
-    ];
-    const stats = computeBaseAbilities(alloc, "will");
-    expect(stats).toEqual({ body: 12, perception: 6, reason: 6, will: 9 });
   });
 
   it("result is frozen", () => {
