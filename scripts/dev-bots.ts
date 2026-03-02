@@ -7,25 +7,23 @@
  */
 
 import { io, type Socket } from "socket.io-client";
+import { ClientEvents, ServerEvents } from "../server/socket/events.js";
+import mapData from "../map/map-data.json";
 
 // ── Config ──────────────────────────────────────────────
 
 const SERVER_URL = process.env.SERVER_URL ?? "http://localhost:3000";
 
-const ADJACENCY: Record<string, readonly string[]> = {
-  "water-tower": ["old-residential", "mountain-path"],
-  "old-residential": ["water-tower", "mountain-path", "shopping"],
-  "mountain-path": ["water-tower", "old-residential", "upstream", "bridge"],
-  upstream: ["mountain-path", "aqueduct"],
-  church: ["bridge"],
-  bridge: ["church", "mountain-path", "shopping", "station", "warehouse"],
-  shopping: ["old-residential", "bridge", "station"],
-  station: ["bridge", "shopping", "port"],
-  port: ["station", "warehouse", "river-mouth"],
-  warehouse: ["bridge", "port", "river-mouth"],
-  "river-mouth": ["warehouse", "port", "aqueduct"],
-  aqueduct: ["upstream", "river-mouth"],
-};
+// Derive adjacency from the shared map-data.json (single source of truth)
+const ADJACENCY: Record<string, readonly string[]> = (() => {
+  const map: Record<string, string[]> = {};
+  for (const loc of mapData.locations) map[loc.id] = [];
+  for (const conn of mapData.connections) {
+    map[conn.from].push(conn.to);
+    map[conn.to].push(conn.from);
+  }
+  return map;
+})();
 
 const ROLE_CYCLE = ["master", "servant", "any"] as const;
 
@@ -119,9 +117,9 @@ function createBot(index: number, roomCode: string | null, isCreator: boolean): 
   socket.on("connect", () => {
     log(bot, "connected");
     if (isCreator) {
-      socket.emit("room:create", {});
+      socket.emit(ClientEvents.ROOM_CREATE, {});
     } else if (roomCode) {
-      socket.emit("room:join", { code: roomCode });
+      socket.emit(ClientEvents.ROOM_JOIN, { code: roomCode });
     }
   });
 
@@ -135,41 +133,45 @@ function createBot(index: number, roomCode: string | null, isCreator: boolean): 
 
   // ── Room events ──
 
-  socket.on("room:created", (payload: { code: string }) => {
-    log(bot, `created room ${payload.code}`);
+  const onRoomEntered = (verb: string, code: string): void => {
+    log(bot, `${verb} room ${code}`);
     const rolePref = ROLE_CYCLE[index % ROLE_CYCLE.length];
-    socket.emit("room:setRole", { rolePreference: rolePref });
+    socket.emit(ClientEvents.ROOM_SET_ROLE, { rolePreference: rolePref });
     log(bot, `role preference: ${rolePref}`);
-  });
+  };
 
-  socket.on("room:joined", (payload: { code: string }) => {
-    log(bot, `joined room ${payload.code}`);
-    const rolePref = ROLE_CYCLE[index % ROLE_CYCLE.length];
-    socket.emit("room:setRole", { rolePreference: rolePref });
-    log(bot, `role preference: ${rolePref}`);
-  });
+  socket.on(ServerEvents.ROOM_CREATED, ({ code }: { code: string }) =>
+    onRoomEntered("created", code),
+  );
 
-  socket.on("room:state", (state: { players: readonly { id: string }[]; status: string }) => {
-    log(bot, `room state: ${state.players.length} players, status=${state.status}`);
-    // Auto-start if this bot is creator and enough players
-    if (isCreator && state.players.length >= 4 && state.status === "waiting") {
-      log(bot, "enough players, starting game...");
-      socket.emit("room:start", {});
-    }
-  });
+  socket.on(ServerEvents.ROOM_JOINED, ({ code }: { code: string }) =>
+    onRoomEntered("joined", code),
+  );
 
-  socket.on("room:error", (payload: { message: string }) => {
+  socket.on(
+    ServerEvents.ROOM_STATE,
+    (state: { players: readonly { id: string }[]; status: string }) => {
+      log(bot, `room state: ${state.players.length} players, status=${state.status}`);
+      // Auto-start if this bot is creator and enough players
+      if (isCreator && state.players.length >= 4 && state.status === "waiting") {
+        log(bot, "enough players, starting game...");
+        socket.emit(ClientEvents.ROOM_START, {});
+      }
+    },
+  );
+
+  socket.on(ServerEvents.ROOM_ERROR, (payload: { message: string }) => {
     log(bot, `room error: ${payload.message}`);
   });
 
-  socket.on("room:started", () => {
+  socket.on(ServerEvents.ROOM_STARTED, () => {
     log(bot, "game started!");
   });
 
   // ── Game events ──
 
   socket.on(
-    "game:initialized",
+    ServerEvents.GAME_INITIALIZED,
     (payload: {
       yourCharacterId: string;
       yourGroupIndex: number;
@@ -188,7 +190,7 @@ function createBot(index: number, roomCode: string | null, isCreator: boolean): 
   );
 
   socket.on(
-    "game:phaseChange",
+    ServerEvents.GAME_PHASE_CHANGE,
     (payload: { nightNumber: number; phase: string; phaseEndsAt: number }) => {
       const remaining = Math.round((payload.phaseEndsAt - Date.now()) / 1000);
       log(bot, `Night ${payload.nightNumber} | ${payload.phase} | ${remaining}s`);
@@ -200,7 +202,7 @@ function createBot(index: number, roomCode: string | null, isCreator: boolean): 
           const target = pickRandomMove(bot.location);
           if (target !== bot.location) {
             log(bot, `moving: ${bot.location} -> ${target}`);
-            socket.emit("game:move", { targetLocation: target });
+            socket.emit(ClientEvents.GAME_MOVE, { targetLocation: target });
           } else {
             log(bot, `staying at ${bot.location}`);
           }
@@ -210,7 +212,7 @@ function createBot(index: number, roomCode: string | null, isCreator: boolean): 
   );
 
   socket.on(
-    "game:moveResult",
+    ServerEvents.GAME_MOVE_RESULT,
     (payload: { success: boolean; newLocation?: string; error?: string }) => {
       if (payload.success && payload.newLocation) {
         bot.location = payload.newLocation;
@@ -222,21 +224,24 @@ function createBot(index: number, roomCode: string | null, isCreator: boolean): 
   );
 
   socket.on(
-    "game:encounter",
+    ServerEvents.GAME_ENCOUNTER,
     (payload: { locationId: string; groupIndices: readonly number[] }) => {
       log(bot, `ENCOUNTER at ${payload.locationId}: groups ${payload.groupIndices.join(", ")}`);
     },
   );
 
-  socket.on("game:nightReport", (payload: { nightNumber: number; events: readonly string[] }) => {
-    log(bot, `Night ${payload.nightNumber} report: ${payload.events.length} events`);
-  });
+  socket.on(
+    ServerEvents.GAME_NIGHT_REPORT,
+    (payload: { nightNumber: number; events: readonly string[] }) => {
+      log(bot, `Night ${payload.nightNumber} report: ${payload.events.length} events`);
+    },
+  );
 
-  socket.on("game:locationDestroyed", (payload: { locationIds: readonly string[] }) => {
+  socket.on(ServerEvents.GAME_LOCATION_DESTROYED, (payload: { locationIds: readonly string[] }) => {
     log(bot, `locations destroyed: ${payload.locationIds.join(", ")}`);
   });
 
-  socket.on("game:ended", (payload: { reason: string; winnerGroupIndex?: number }) => {
+  socket.on(ServerEvents.GAME_ENDED, (payload: { reason: string; winnerGroupIndex?: number }) => {
     if (payload.reason === "last_pair") {
       log(bot, `GAME OVER: group ${payload.winnerGroupIndex} wins!`);
     } else {
@@ -266,7 +271,7 @@ async function main(): Promise<void> {
     bots.push(creator);
 
     const roomCodePromise = new Promise<string>((resolve) => {
-      creator.socket.on("room:created", (payload: { code: string }) => {
+      creator.socket.once(ServerEvents.ROOM_CREATED, (payload: { code: string }) => {
         resolve(payload.code);
       });
     });

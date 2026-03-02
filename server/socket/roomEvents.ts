@@ -14,7 +14,6 @@ import {
   setRolePreference,
   getRoomState,
   getPlayerRoom,
-  canStartGame,
   startGame,
   getInternalPlayers,
   setPlayerConnection,
@@ -38,7 +37,7 @@ const disconnectTimers = new Map<string, NodeJS.Timeout>();
 /** Wrap async socket handler — log Redis/DB errors instead of crashing */
 function safe(fn: () => Promise<void>): void {
   fn().catch((err) => {
-    console.error("[socket] handler error:", err.message);
+    console.error("[socket] handler error:", err);
   });
 }
 
@@ -122,9 +121,24 @@ export function registerRoomEvents(io: Server, socket: Socket): void {
         return;
       }
 
-      const check = await canStartGame(code);
-      if (!check.canStart) {
-        emitRoomError(socket, { message: check.error! });
+      // Inline validation (avoids redundant getRoomState call inside canStartGame)
+      if (state.status !== "waiting") {
+        emitRoomError(socket, { message: "遊戲已開始" });
+        return;
+      }
+      const playerCount = state.players.length;
+      if (playerCount < state.minHumanPairs * 2) {
+        emitRoomError(socket, {
+          message: `至少需要 ${state.minHumanPairs * 2} 名玩家（目前 ${playerCount} 人）`,
+        });
+        return;
+      }
+      const masters = state.players.filter((p) => p.rolePreference === "master").length;
+      const servants = state.players.filter((p) => p.rolePreference === "servant").length;
+      const anyRole = state.players.filter((p) => p.rolePreference === "any").length;
+      const pairs = Math.floor(playerCount / 2);
+      if (Math.max(0, pairs - masters) + Math.max(0, pairs - servants) > anyRole) {
+        emitRoomError(socket, { message: "無法以目前的偏好分配角色" });
         return;
       }
 
@@ -208,7 +222,7 @@ export function registerRoomEvents(io: Server, socket: Socket): void {
       for (const s of kickedSockets) {
         if (s.data.playerId === payload.targetPlayerId) {
           s.leave(code);
-          s.emit("room:error", { message: "你已被踢出房間" });
+          s.emit(ServerEvents.ROOM_ERROR, { message: "你已被踢出房間" });
         }
       }
 

@@ -13,7 +13,7 @@ export function connectRedis(): Redis {
     },
   });
   redis.on("error", (err) => {
-    console.error("[Redis] connection error:", err.message);
+    console.error("[Redis] connection error:", err);
   });
   redis.on("connect", () => {
     console.log("[Redis] connected");
