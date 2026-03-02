@@ -12,6 +12,12 @@ export function connectRedis(): Redis {
       return Math.min(times * 200, 2000);
     },
   });
+  redis.on("error", (err) => {
+    console.error("[Redis] connection error:", err.message);
+  });
+  redis.on("connect", () => {
+    console.log("[Redis] connected");
+  });
   return redis;
 }
 

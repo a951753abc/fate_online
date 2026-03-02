@@ -7,6 +7,11 @@ import { NightHud } from "../components/game/NightHud.js";
 import type { LocationId, GameInitializedPayload } from "../types/protocol.js";
 import mapData from "../../../map/map-data.json";
 
+// LocationId → 繁中名稱 lookup
+const LOCATION_NAMES: ReadonlyMap<string, string> = new Map(
+  mapData.locations.map((loc) => [loc.id, loc.name]),
+);
+
 // Derive adjacency from the shared map-data.json (single source of truth)
 const ADJACENCY: ReadonlyMap<string, readonly string[]> = (() => {
   const map = new Map<string, string[]>();
@@ -141,7 +146,7 @@ export function GamePage() {
             組別：<strong>{myGroup}</strong>
           </span>
           <span>
-            位置：<strong>{myLocation}</strong>
+            位置：<strong>{LOCATION_NAMES.get(myLocation) ?? myLocation}</strong>
           </span>
           {partnerPos && (
             <span>

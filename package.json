@@ -19,7 +19,8 @@
     "test:coverage": "vitest run --coverage",
     "test:client": "cd client && npx vitest run",
     "test:all": "npm test && npm run test:client",
-    "prepare": "simple-git-hooks"
+    "prepare": "simple-git-hooks",
+    "dev:bots": "tsx scripts/dev-bots.ts"
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"
@@ -55,6 +56,7 @@
     "lint-staged": "^15.3.0",
     "prettier": "^3.4.2",
     "simple-git-hooks": "^2.11.1",
+    "socket.io-client": "^4.8.3",
     "supertest": "^7.0.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3",

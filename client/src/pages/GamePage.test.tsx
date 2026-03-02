@@ -130,7 +130,7 @@ describe("GamePage", () => {
 
     expect(screen.getByText("マスター")).toBeInTheDocument();
     expect(screen.getByText("0")).toBeInTheDocument();
-    expect(screen.getByText("bridge")).toBeInTheDocument();
+    expect(screen.getByText("奏琴橋")).toBeInTheDocument();
   });
 
   it("shows partner nickname when partner exists", () => {
