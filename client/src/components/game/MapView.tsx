@@ -67,6 +67,41 @@ export function MapView({
       viewBox={`0 0 ${canvas.width} ${canvas.height}`}
       style={{ width: "100%", maxHeight: "500px", background: "#0d1117", borderRadius: "8px" }}
     >
+      {/* River (奏琴川) + estuary */}
+      {mapData.river &&
+        (() => {
+          const pts = mapData.river.points;
+          const last = pts[pts.length - 1];
+          return (
+            <>
+              <polyline
+                points={pts.map((p) => `${p.x},${p.y}`).join(" ")}
+                fill="none"
+                stroke="#1a6b9a"
+                strokeWidth={8}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity={0.4}
+              />
+              {/* Estuary fan — freshwater disperses into sea */}
+              <defs>
+                <radialGradient id="estuary-grad" cx="40%" cy="20%" r="80%">
+                  <stop offset="0%" stopColor="#1a6b9a" stopOpacity={0.35} />
+                  <stop offset="60%" stopColor="#1a6b9a" stopOpacity={0.1} />
+                  <stop offset="100%" stopColor="#1a6b9a" stopOpacity={0} />
+                </radialGradient>
+              </defs>
+              <ellipse
+                cx={last.x + 10}
+                cy={last.y + 50}
+                rx={55}
+                ry={60}
+                fill="url(#estuary-grad)"
+              />
+            </>
+          );
+        })()}
+
       {/* Connections */}
       {connections.map((conn, i) => {
         const from = locationById.get(conn.from);
