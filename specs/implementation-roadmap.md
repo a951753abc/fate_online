@@ -34,11 +34,33 @@
 > **Phase 1 結束時**：玩家可以進房間、看地圖、移動、佔領據點。最小可互動原型。
 
 ## Phase 2 — 角色骨架
-**依據**: spec-03, spec-02
-- サーヴァント：七職階、五圍（骰定）、職階技能基礎效果
-- マスター：三級別、風格/背反律
-- Master-Servant 配對 + 魔力供給距離
-- 令呪系統（先做強化型，覆蓋型留後面）
+
+角色建立為獨立模組（`server/game/character/`），透過定義好的 IN/OUT API 與遊戲主體交互。
+可用 git worktree 平行開發。
+
+### Phase 2-1 — Master 模組 API
+**依據**: spec-02
+- マスター角色建立模組的 IN/OUT API 定義
+- Types: MasterLevel, MasterData, StyleDefinition, EnhancementSpellType
+- API: generateMaster / spendCommandSpell / useAntithesis / setGrailWish
+- 情報迷霧: buildOwnMasterView / buildServantViewOfMaster
+- 查詢: getAvailableLevels / getAvailableStyles
+- 純函數模組，零 I/O，自帶單元測試
+
+### Phase 2-2 — Servant 模組 API
+**依據**: spec-03
+- サーヴァント角色建立模組的 IN/OUT API 定義
+- 七職階、五圍骰定（三步驟）、職階技能、保有スキル、宝具
+- 職階隨機不重複分配
+- 情報迷霧: buildOwnServantView / buildMasterViewOfServant
+
+### Phase 2-3 — 遊戲整合
+**依據**: spec-02, spec-03, spec-01
+- Preparation Phase（準備階段）遊戲流程
+- Redis 持久化（chardata / cmdspells）
+- Socket 事件（prep:setLevel / prep:ready 等）
+- Client UI（PreparationPage / CharacterPanel / PartnerPanel / CommandSpellIndicator）
+- dev-bots.ts 更新
 
 ## Phase 3 — 戰鬥核心
 **依據**: spec-06
