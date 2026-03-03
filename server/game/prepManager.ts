@@ -3,7 +3,7 @@ import type { GroupState } from "./types.js";
 import type { AbilityStatKey, LevelAllocation, MasterLevelId } from "./character/masterTypes.js";
 import type { ComputedStats } from "./character/masterTypes.js";
 import type { PrepPlayerState, PrepStatus, SkillSelectionPayload } from "../shared/protocol.js";
-import type { SkillSelection } from "./character/skills/types.js";
+import type { SkillSelection, SkillInstanceConfig } from "./character/skills/types.js";
 import { validateAllocation, computeAllStats } from "./character/masterStats.js";
 import { DEFAULT_LEVEL_CONFIG } from "./character/masterLevels.js";
 import { validateSkillSelection } from "./character/skills/skillValidation.js";
@@ -11,7 +11,7 @@ import {
   getClassSkillAcquisition,
   computeExpectedSkillCount,
 } from "./character/skills/acquisitionRules.js";
-import { getClassNormalSkills } from "./character/skills/index.js";
+import { getClassNormalSkills, findSkillDef } from "./character/skills/index.js";
 
 // Redis key helpers
 const prepKey = (code: string) => `game:${code}:prep`;
@@ -55,7 +55,7 @@ export interface SubmitResult {
 // --- NPC Auto Skill Selection ---
 
 /**
- * 為 NPC 自動生成技能選擇（簡單策略：滿足初期步驟 + 取前 N 個非額外技能）
+ * 為 NPC 自動生成技能選擇（簡單策略：滿足初期步驟 + 取前 N 個非額外非要素技能）
  */
 function generateNpcSkillSelection(classId: MasterLevelId, classLevel: number): SkillSelection {
   const acq = getClassSkillAcquisition(classId);
@@ -63,6 +63,7 @@ function generateNpcSkillSelection(classId: MasterLevelId, classLevel: number): 
   const totalNeeded = computeExpectedSkillCount(classId, classLevel);
   const selected: string[] = [];
   const selectedSet = new Set<string>();
+  const configs: Record<string, readonly SkillInstanceConfig[]> = {};
 
   const addSkill = (id: string) => {
     if (!selectedSet.has(id)) {
@@ -87,22 +88,71 @@ function generateNpcSkillSelection(classId: MasterLevelId, classLevel: number): 
     }
   }
 
-  // 用非額外技能填充剩餘位置
+  // 用非額外、非 compositionOnly 技能填充剩餘位置
   for (const skill of normalSkills) {
     if (selected.length >= totalNeeded) break;
+    if (skill.compositionOnly) continue;
     addSkill(skill.id);
+  }
+
+  // 為需要配置的技能生成 NPC 預設配置
+  for (const skillId of selected) {
+    const def = findSkillDef(skillId);
+    if (!def?.configType) continue;
+
+    switch (def.configType) {
+      case "attribute_distribution": {
+        // NPC 簡單策略：全部分配到第一種屬性（地）
+        const totalPts = classLevel + 1;
+        configs[skillId] = Object.freeze([
+          Object.freeze({
+            type: "attribute_distribution" as const,
+            distribution: Object.freeze({ earth: totalPts }),
+          }),
+        ]);
+        break;
+      }
+      case "familiar":
+        configs[skillId] = Object.freeze([
+          Object.freeze({ type: "familiar" as const, familiarType: "dog" as const }),
+        ]);
+        break;
+      case "mystic_code":
+        configs[skillId] = Object.freeze([
+          Object.freeze({ type: "mystic_code" as const, mysticCodeId: "mc-azoth-sword" }),
+        ]);
+        break;
+      case "composition":
+        configs[skillId] = Object.freeze([
+          Object.freeze({
+            type: "composition" as const,
+            mode: "new" as const,
+            elements: Object.freeze([
+              Object.freeze({ elementSkillId: "mag-element-damage" }),
+              Object.freeze({ elementSkillId: "mag-element-attack-type", subChoice: "spirit" }),
+              Object.freeze({ elementSkillId: "mag-element-chant" }),
+            ]),
+          }),
+        ]);
+        break;
+    }
   }
 
   return Object.freeze({
     classId,
     classLevel,
     selectedSkillIds: Object.freeze(selected),
-  }) as SkillSelection;
+    skillConfigs: Object.freeze(configs),
+  });
 }
 
 // Pre-compute NPC master data (always magician LV{gameLevel}, freePoint: reason)
 const NPC_MASTER_ALLOCATION: readonly LevelAllocation[] = Object.freeze([
-  { levelId: "magician", level: DEFAULT_LEVEL_CONFIG.gameLevel },
+  {
+    levelId: "magician",
+    level: DEFAULT_LEVEL_CONFIG.gameLevel,
+    startingLevel: DEFAULT_LEVEL_CONFIG.gameLevel,
+  },
 ]);
 const NPC_MASTER_SKILLS: readonly SkillSelection[] = Object.freeze([
   generateNpcSkillSelection("magician", DEFAULT_LEVEL_CONFIG.gameLevel),
@@ -203,6 +253,9 @@ export async function submitMasterBuild(
       classId,
       classLevel: sel.classLevel,
       selectedSkillIds: sel.selectedSkillIds,
+      skillConfigs: sel.skillConfigs as unknown as
+        | Readonly<Record<string, readonly SkillInstanceConfig[]>>
+        | undefined,
     });
     if (!skillValidation.valid) {
       const firstError = skillValidation.errors[0];
@@ -223,6 +276,13 @@ export async function submitMasterBuild(
         classId: sel.classId as MasterLevelId,
         classLevel: sel.classLevel,
         selectedSkillIds: Object.freeze([...sel.selectedSkillIds]),
+        skillConfigs: sel.skillConfigs
+          ? Object.freeze(
+              sel.skillConfigs as unknown as Readonly<
+                Record<string, readonly SkillInstanceConfig[]>
+              >,
+            )
+          : undefined,
       }),
     ),
   );

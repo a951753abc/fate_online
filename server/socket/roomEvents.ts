@@ -33,6 +33,9 @@ import { getAvailableLevels, DEFAULT_LEVEL_CONFIG } from "../game/character/mast
 import {
   buildAllClassSkillViews,
   buildAllClassAcquisitionViews,
+  buildMysticCodeViews,
+  buildFamiliarOptionViews,
+  buildElementSubChoiceViews,
 } from "../game/character/skills/prepSkillDataBuilder.js";
 import type { NightState } from "../game/types.js";
 import type { PrepConfig, MasterLevelView } from "../shared/protocol.js";
@@ -53,6 +56,9 @@ const PREP_CONFIG: PrepConfig = Object.freeze({
   ) as readonly MasterLevelView[],
   classSkills: buildAllClassSkillViews(),
   classAcquisitions: buildAllClassAcquisitionViews(),
+  mysticCodes: buildMysticCodeViews(),
+  familiarOptions: buildFamiliarOptionViews(),
+  elementSubChoices: buildElementSubChoiceViews(),
 });
 
 // Track disconnect timers for reconnection grace period

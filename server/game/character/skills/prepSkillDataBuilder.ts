@@ -9,11 +9,16 @@ import type {
   SkillPrereqView,
   ClassAcquisitionView,
   InitialStepView,
+  MysticCodeView,
+  FamiliarOptionView,
+  ElementSubChoiceView,
 } from "../../../shared/protocol.js";
 import { getClassSkills } from "./index.js";
 import { CLASS_SKILL_ACQUISITIONS } from "./acquisitionRules.js";
 import type { MasterLevelId } from "../masterTypes.js";
 import { getMasterLevelDef, MASTER_LEVEL_IDS } from "../masterLevels.js";
+import { MYSTIC_CODES } from "./mysticCodes.js";
+import { FAMILIAR_OPTIONS, ELEMENT_SUB_CHOICES } from "./magicianConfigs.js";
 
 // --- 前置條件 → 人類可讀描述 ---
 
@@ -99,6 +104,9 @@ function skillDefToView(def: SkillDef): SkillView {
     effectDescription: def.effectDescription,
     tpReward: def.tpReward,
     prerequisites: Object.freeze(def.prerequisites.map(prereqToView)),
+    ...(def.repeatable ? { repeatable: def.repeatable } : {}),
+    ...(def.compositionOnly ? { compositionOnly: def.compositionOnly } : {}),
+    ...(def.configType ? { configType: def.configType } : {}),
   });
 }
 
@@ -137,4 +145,54 @@ export function buildAllClassSkillViews(): Readonly<Record<string, readonly Skil
 /** 建構所有級別的取得規則 View */
 export function buildAllClassAcquisitionViews(): readonly ClassAcquisitionView[] {
   return Object.freeze(CLASS_SKILL_ACQUISITIONS.map(acquisitionToView));
+}
+
+/** 建構禮裝目錄 View */
+export function buildMysticCodeViews(): readonly MysticCodeView[] {
+  return Object.freeze(
+    MYSTIC_CODES.map((mc) =>
+      Object.freeze({
+        id: mc.id,
+        nameJa: mc.nameJa,
+        nameCht: mc.nameCht,
+        category: mc.category,
+        effectDescription: mc.effectDescription,
+      }),
+    ),
+  );
+}
+
+/** 建構使魔選項 View */
+export function buildFamiliarOptionViews(): readonly FamiliarOptionView[] {
+  return Object.freeze(
+    FAMILIAR_OPTIONS.map((fo) =>
+      Object.freeze({
+        type: fo.type,
+        nameJa: fo.nameJa,
+        nameCht: fo.nameCht,
+        description: fo.description,
+      }),
+    ),
+  );
+}
+
+/** 建構要素子選擇 View */
+export function buildElementSubChoiceViews(): readonly ElementSubChoiceView[] {
+  return Object.freeze(
+    ELEMENT_SUB_CHOICES.map((sc) =>
+      Object.freeze({
+        elementSkillId: sc.elementSkillId,
+        choiceKey: sc.choiceKey,
+        label: sc.labelCht,
+        options: Object.freeze(
+          sc.options.map((opt) =>
+            Object.freeze({
+              value: opt.value,
+              label: opt.labelCht,
+            }),
+          ),
+        ),
+      }),
+    ),
+  );
 }

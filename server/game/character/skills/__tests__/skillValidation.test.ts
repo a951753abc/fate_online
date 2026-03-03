@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   validateSkillSelection,
+  validateSkillConfigs,
   validateInitialSteps,
   validateSkillCount,
   validateNoDuplicates,
@@ -129,6 +130,9 @@ describe("validateSkillSelection — 完整驗證", () => {
       classId: "magician",
       classLevel: 1,
       selectedSkillIds: ["mag-magic-circuit", "mag-reinforcement"],
+      skillConfigs: {
+        "mag-magic-circuit": [{ type: "attribute_distribution", distribution: { earth: 2 } }],
+      },
     });
     expect(result.valid).toBe(true);
     expect(result.errors).toHaveLength(0);
@@ -203,5 +207,224 @@ describe("validateSkillSelection — 完整驗證", () => {
     });
     expect(result.valid).toBe(false);
     expect(result.errors.some((e) => e.code === "SKILL_NOT_IN_CLASS")).toBe(true);
+  });
+});
+
+describe("validateSkillConfigs — 多重屬性", () => {
+  it("無多重屬性時 LV1 totalPoints = 2（LV1+1）", () => {
+    const result = validateSkillConfigs({
+      classId: "magician",
+      classLevel: 1,
+      selectedSkillIds: ["mag-magic-circuit", "mag-reinforcement"],
+      skillConfigs: {
+        "mag-magic-circuit": [{ type: "attribute_distribution", distribution: { earth: 2 } }],
+      },
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("有多重屬性時 LV1 totalPoints = 4（LV1+1+2）", () => {
+    const result = validateSkillConfigs({
+      classId: "magician",
+      classLevel: 1,
+      selectedSkillIds: ["mag-magic-circuit", "mag-multi-element"],
+      skillConfigs: {
+        "mag-magic-circuit": [
+          {
+            type: "attribute_distribution",
+            distribution: { earth: 1, water: 1, fire: 1, wind: 1 },
+          },
+        ],
+      },
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it("有多重屬性時可選 4~5 種屬性", () => {
+    const result = validateSkillConfigs({
+      classId: "magician",
+      classLevel: 1,
+      selectedSkillIds: ["mag-magic-circuit", "mag-multi-element"],
+      skillConfigs: {
+        "mag-magic-circuit": [
+          {
+            type: "attribute_distribution",
+            distribution: { earth: 1, water: 1, fire: 1, void: 1 },
+          },
+        ],
+      },
+    });
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it("有多重屬性但點數不符失敗", () => {
+    const result = validateSkillConfigs({
+      classId: "magician",
+      classLevel: 1,
+      selectedSkillIds: ["mag-magic-circuit", "mag-multi-element"],
+      skillConfigs: {
+        "mag-magic-circuit": [{ type: "attribute_distribution", distribution: { earth: 2 } }],
+      },
+    });
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.code === "ATTR_DIST_WRONG_TOTAL")).toBe(true);
+  });
+
+  it("無多重屬性時選 4 種屬性失敗", () => {
+    const result = validateSkillConfigs({
+      classId: "magician",
+      classLevel: 3,
+      selectedSkillIds: [
+        "mag-magic-circuit",
+        "mag-reinforcement",
+        "mag-familiar",
+        "mag-bounded-field",
+      ],
+      skillConfigs: {
+        "mag-magic-circuit": [
+          {
+            type: "attribute_distribution",
+            distribution: { earth: 1, water: 1, fire: 1, wind: 1 },
+          },
+        ],
+      },
+    });
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.code === "ATTR_DIST_TYPE_COUNT")).toBe(true);
+  });
+});
+
+describe("validateSkillConfigs — 要素衝突", () => {
+  const makeComposition = (elementIds: string[]) => ({
+    type: "composition" as const,
+    mode: "new" as const,
+    elements: elementIds.map((id) => ({ elementSkillId: id })),
+  });
+
+  it("R1: 觸發類型互斥 — 準備 + 攻擊類型同時選失敗", () => {
+    const result = validateSkillConfigs({
+      classId: "magician",
+      classLevel: 2,
+      selectedSkillIds: ["mag-magic-circuit", "mag-magic-composition", "mag-reinforcement"],
+      skillConfigs: {
+        "mag-magic-circuit": [{ type: "attribute_distribution", distribution: { earth: 3 } }],
+        "mag-magic-composition": [
+          makeComposition(["mag-element-prep", "mag-element-attack-type", "mag-element-chant"]),
+        ],
+      },
+    });
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.code === "COMPOSITION_TRIGGER_CONFLICT")).toBe(true);
+  });
+
+  it("R2: 傷害無攻擊類型/進攻失敗", () => {
+    const result = validateSkillConfigs({
+      classId: "magician",
+      classLevel: 2,
+      selectedSkillIds: ["mag-magic-circuit", "mag-magic-composition", "mag-reinforcement"],
+      skillConfigs: {
+        "mag-magic-circuit": [{ type: "attribute_distribution", distribution: { earth: 3 } }],
+        "mag-magic-composition": [
+          makeComposition(["mag-element-damage", "mag-element-chant", "mag-element-area"]),
+        ],
+      },
+    });
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.code === "COMPOSITION_DAMAGE_NEEDS_ATTACK")).toBe(true);
+  });
+
+  it("R3: 防禦無其他輔助要素失敗", () => {
+    const result = validateSkillConfigs({
+      classId: "magician",
+      classLevel: 2,
+      selectedSkillIds: ["mag-magic-circuit", "mag-magic-composition", "mag-reinforcement"],
+      skillConfigs: {
+        "mag-magic-circuit": [{ type: "attribute_distribution", distribution: { earth: 3 } }],
+        "mag-magic-composition": [
+          makeComposition(["mag-element-defense", "mag-element-chant", "mag-element-area"]),
+        ],
+      },
+    });
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.code === "COMPOSITION_DEFENSE_NEEDS_SUPPORT")).toBe(true);
+  });
+
+  it("R4: 增益無其他輔助要素失敗", () => {
+    const result = validateSkillConfigs({
+      classId: "magician",
+      classLevel: 2,
+      selectedSkillIds: ["mag-magic-circuit", "mag-magic-composition", "mag-reinforcement"],
+      skillConfigs: {
+        "mag-magic-circuit": [{ type: "attribute_distribution", distribution: { earth: 3 } }],
+        "mag-magic-composition": [
+          makeComposition(["mag-element-buff", "mag-element-chant", "mag-element-area"]),
+        ],
+      },
+    });
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.code === "COMPOSITION_BUFF_NEEDS_SUPPORT")).toBe(true);
+  });
+
+  it("合法組合 — 攻擊類型 + 傷害 + 詠唱 通過", () => {
+    const result = validateSkillConfigs({
+      classId: "magician",
+      classLevel: 2,
+      selectedSkillIds: ["mag-magic-circuit", "mag-magic-composition", "mag-reinforcement"],
+      skillConfigs: {
+        "mag-magic-circuit": [{ type: "attribute_distribution", distribution: { earth: 3 } }],
+        "mag-magic-composition": [
+          makeComposition(["mag-element-attack-type", "mag-element-damage", "mag-element-chant"]),
+        ],
+      },
+    });
+    // Should not have any composition conflict errors
+    const conflictErrors = result.errors.filter(
+      (e) =>
+        e.code.startsWith("COMPOSITION_TRIGGER") ||
+        e.code.startsWith("COMPOSITION_DAMAGE") ||
+        e.code.startsWith("COMPOSITION_DEFENSE") ||
+        e.code.startsWith("COMPOSITION_BUFF"),
+    );
+    expect(conflictErrors).toHaveLength(0);
+  });
+
+  it("合法組合 — 防禦 + 增益（互為輔助）通過", () => {
+    const result = validateSkillConfigs({
+      classId: "magician",
+      classLevel: 2,
+      selectedSkillIds: ["mag-magic-circuit", "mag-magic-composition", "mag-reinforcement"],
+      skillConfigs: {
+        "mag-magic-circuit": [{ type: "attribute_distribution", distribution: { earth: 3 } }],
+        "mag-magic-composition": [
+          makeComposition(["mag-element-defense", "mag-element-buff", "mag-element-chant"]),
+        ],
+      },
+    });
+    const conflictErrors = result.errors.filter(
+      (e) => e.code.startsWith("COMPOSITION_DEFENSE") || e.code.startsWith("COMPOSITION_BUFF"),
+    );
+    expect(conflictErrors).toHaveLength(0);
+  });
+
+  it("擴充模式不檢查衝突規則", () => {
+    const result = validateSkillConfigs({
+      classId: "magician",
+      classLevel: 2,
+      selectedSkillIds: ["mag-magic-circuit", "mag-magic-composition", "mag-reinforcement"],
+      skillConfigs: {
+        "mag-magic-circuit": [{ type: "attribute_distribution", distribution: { earth: 3 } }],
+        "mag-magic-composition": [
+          {
+            type: "composition",
+            mode: "expand",
+            targetIndex: 0,
+            elements: [{ elementSkillId: "mag-element-damage" }],
+          },
+        ],
+      },
+    });
+    const conflictErrors = result.errors.filter((e) => e.code.startsWith("COMPOSITION_DAMAGE"));
+    expect(conflictErrors).toHaveLength(0);
   });
 });

@@ -7,9 +7,15 @@ import type {
   PrepStatus,
   MasterLevelView,
   ClassAcquisitionView,
+  SkillInstanceConfigPayload,
+  SkillView,
 } from "../../types/protocol.js";
 import { computeExpectedSkillCount } from "../../utils/skillUtils.js";
 import { SkillSelectionPanel } from "./SkillSelectionPanel.js";
+import { AttributeDistPanel } from "./AttributeDistPanel.js";
+import { FamiliarPicker } from "./FamiliarPicker.js";
+import { MysticCodePicker } from "./MysticCodePicker.js";
+import { CompositionBuilder } from "./CompositionBuilder.js";
 import "./MasterCreation.css";
 
 type AbilityKey = PrepSubmitPayload["freePoint"];
@@ -41,6 +47,12 @@ interface SelectedLevel {
 
 type CreationStep = "starting" | "upgrade" | "skills";
 
+interface ConfigModalState {
+  readonly classId: string;
+  readonly skillId: string;
+  readonly editIndex?: number;
+}
+
 interface MasterCreationProps {
   readonly prepConfig: PrepConfig;
   readonly prepState: PrepStatePayload | null;
@@ -66,6 +78,11 @@ export function MasterCreation({
   const [skillSelections, setSkillSelections] = useState<
     Readonly<Record<string, readonly string[]>>
   >({});
+  const [skillConfigs, setSkillConfigs] = useState<
+    Readonly<Record<string, Readonly<Record<string, readonly SkillInstanceConfigPayload[]>>>>
+  >({});
+  const [startingLevels, setStartingLevels] = useState<Readonly<Record<string, number>>>({});
+  const [configModal, setConfigModal] = useState<ConfigModalState | null>(null);
 
   const isReady =
     prepState?.players.find((p) => p.characterId === myCharacterId)?.status === "ready";
@@ -91,12 +108,23 @@ export function MasterCreation({
     return map;
   }, [prepConfig.classAcquisitions]);
 
+  // Build skill maps per class for config type lookup
+  const classSkillMaps = useMemo(() => {
+    const maps: Record<string, Map<string, SkillView>> = {};
+    for (const [classId, skills] of Object.entries(prepConfig.classSkills)) {
+      const map = new Map<string, SkillView>();
+      for (const s of skills) map.set(s.id, s);
+      maps[classId] = map;
+    }
+    return maps;
+  }, [prepConfig.classSkills]);
+
   const canConfirmStarting = step === "starting" && selected.length > 0 && remaining === 0;
   const canAdvanceToSkills = step === "upgrade" && remaining === 0;
   const hasStats = buildResult?.success && buildResult.stats;
   const locked = isReady || step === "upgrade" || step === "skills";
 
-  // Check if all skill selections are complete
+  // Check if all skill selections are complete (including configs)
   const allSkillsComplete = useMemo(() => {
     if (step !== "skills") return false;
     for (const s of selected) {
@@ -105,15 +133,109 @@ export function MasterCreation({
       const skills = skillSelections[s.id] ?? [];
       const expected = computeExpectedSkillCount(acq, s.level);
       if (skills.length !== expected) return false;
+
+      // Check all configType skills have configs
+      const classSkillMap = classSkillMaps[s.id];
+      if (!classSkillMap) continue;
+      const classConfs = skillConfigs[s.id] ?? {};
+
+      const configSkillCounts = new Map<string, number>();
+      for (const skillId of skills) {
+        const def = classSkillMap.get(skillId);
+        if (def?.configType) {
+          configSkillCounts.set(skillId, (configSkillCounts.get(skillId) ?? 0) + 1);
+        }
+      }
+      for (const [skillId, count] of configSkillCounts) {
+        const configs = classConfs[skillId] ?? [];
+        if (configs.length !== count) return false;
+      }
     }
     return true;
-  }, [step, selected, acquisitionMap, skillSelections]);
+  }, [step, selected, acquisitionMap, skillSelections, skillConfigs, classSkillMaps]);
 
   const canSubmit = step === "skills" && allSkillsComplete;
+
+  // --- Skill selection handlers ---
 
   const handleSkillChange = useCallback((classId: string, skillIds: readonly string[]) => {
     setSkillSelections((prev) => ({ ...prev, [classId]: skillIds }));
   }, []);
+
+  const handleConfigRequest = useCallback(
+    (classId: string, skillId: string, instanceIndex?: number) => {
+      setConfigModal({ classId, skillId, editIndex: instanceIndex });
+    },
+    [],
+  );
+
+  const handleConfigConfirm = useCallback(
+    (config: SkillInstanceConfigPayload) => {
+      if (!configModal) return;
+      const { classId, skillId, editIndex } = configModal;
+
+      if (editIndex !== undefined) {
+        // Editing existing instance — update config only
+        setSkillConfigs((prev) => {
+          const classConfs = { ...(prev[classId] ?? {}) };
+          const skillConfs = [...(classConfs[skillId] ?? [])];
+          skillConfs[editIndex] = config;
+          return { ...prev, [classId]: { ...classConfs, [skillId]: skillConfs } };
+        });
+      } else {
+        // New instance — add to selectedSkillIds AND config
+        setSkillSelections((prev) => ({
+          ...prev,
+          [classId]: [...(prev[classId] ?? []), skillId],
+        }));
+        setSkillConfigs((prev) => {
+          const classConfs = { ...(prev[classId] ?? {}) };
+          const skillConfs = [...(classConfs[skillId] ?? []), config];
+          return { ...prev, [classId]: { ...classConfs, [skillId]: skillConfs } };
+        });
+      }
+
+      setConfigModal(null);
+    },
+    [configModal],
+  );
+
+  const handleConfigCancel = useCallback(() => {
+    setConfigModal(null);
+  }, []);
+
+  const handleRemoveInstance = useCallback(
+    (classId: string, skillId: string, instanceIndex: number) => {
+      // Remove one occurrence of skillId from selectedSkillIds
+      setSkillSelections((prev) => {
+        const ids = [...(prev[classId] ?? [])];
+        let count = 0;
+        const removeIdx = ids.findIndex((id) => {
+          if (id !== skillId) return false;
+          if (count === instanceIndex) return true;
+          count++;
+          return false;
+        });
+        if (removeIdx >= 0) ids.splice(removeIdx, 1);
+        return { ...prev, [classId]: ids };
+      });
+
+      // Remove corresponding config
+      setSkillConfigs((prev) => {
+        const classConfs = { ...(prev[classId] ?? {}) };
+        const skillConfs = [...(classConfs[skillId] ?? [])];
+        skillConfs.splice(instanceIndex, 1);
+        if (skillConfs.length === 0) {
+          const rest = Object.fromEntries(
+            Object.entries(classConfs).filter(([k]) => k !== skillId),
+          );
+          return { ...prev, [classId]: rest };
+        }
+        return { ...prev, [classId]: { ...classConfs, [skillId]: skillConfs } };
+      });
+    },
+    [],
+  );
 
   // Servant waiting view
   if (myRole === "servant") {
@@ -153,6 +275,9 @@ export function MasterCreation({
   };
 
   const handleConfirmStarting = () => {
+    const levels: Record<string, number> = {};
+    for (const s of selected) levels[s.id] = s.level;
+    setStartingLevels(levels);
     setStep("upgrade");
   };
 
@@ -192,6 +317,8 @@ export function MasterCreation({
     }, []);
     setSelected(reverted);
     setSkillSelections({});
+    setSkillConfigs({});
+    setStartingLevels({});
     setStep("starting");
   };
 
@@ -200,13 +327,109 @@ export function MasterCreation({
   };
 
   const handleSubmit = () => {
-    const allocation = selected.map((s) => ({ levelId: s.id, level: s.level }));
-    const selections = selected.map((s) => ({
-      classId: s.id,
-      classLevel: s.level,
-      selectedSkillIds: [...(skillSelections[s.id] ?? [])],
+    const allocation = selected.map((s) => ({
+      levelId: s.id,
+      level: s.level,
+      startingLevel: startingLevels[s.id] ?? 0,
     }));
+    const selections = selected.map((s) => {
+      const classConfs = skillConfigs[s.id] ?? {};
+      const hasConfigs = Object.keys(classConfs).length > 0;
+      return {
+        classId: s.id,
+        classLevel: s.level,
+        selectedSkillIds: [...(skillSelections[s.id] ?? [])],
+        ...(hasConfigs ? { skillConfigs: classConfs } : {}),
+      };
+    });
     onSubmit({ allocation, freePoint, skillSelections: selections });
+  };
+
+  // --- Config modal rendering ---
+
+  const renderConfigModal = () => {
+    if (!configModal) return null;
+    const { classId, skillId, editIndex } = configModal;
+    const classSkillMap = classSkillMaps[classId];
+    const skillDef = classSkillMap?.get(skillId);
+    if (!skillDef) return null;
+
+    const classConfs = skillConfigs[classId] ?? {};
+    const existingConfig =
+      editIndex !== undefined ? (classConfs[skillId] ?? [])[editIndex] : undefined;
+
+    const classLevel = selected.find((s) => s.id === classId)?.level ?? 1;
+
+    let content: React.ReactNode = null;
+
+    switch (skillDef.configType) {
+      case "attribute_distribution": {
+        const selectedIds = skillSelections[classId] ?? [];
+        const hasMultiElement = selectedIds.includes("mag-multi-element");
+        content = (
+          <AttributeDistPanel
+            classLevel={classLevel}
+            hasMultiElement={hasMultiElement}
+            existingConfig={existingConfig}
+            onConfirm={handleConfigConfirm}
+            onCancel={handleConfigCancel}
+          />
+        );
+        break;
+      }
+      case "familiar":
+        content = (
+          <FamiliarPicker
+            familiarOptions={prepConfig.familiarOptions}
+            existingConfig={existingConfig}
+            onConfirm={handleConfigConfirm}
+            onCancel={handleConfigCancel}
+          />
+        );
+        break;
+      case "mystic_code":
+        content = (
+          <MysticCodePicker
+            mysticCodes={prepConfig.mysticCodes}
+            existingConfig={existingConfig}
+            onConfirm={handleConfigConfirm}
+            onCancel={handleConfigCancel}
+          />
+        );
+        break;
+      case "composition": {
+        // Get compositionOnly elements for this class
+        const classSkills = prepConfig.classSkills[classId] ?? [];
+        const elements = classSkills.filter((s) => s.compositionOnly);
+        // Get existing compositions for expand mode
+        const compositionSkillId = "mag-magic-composition";
+        const existingCompositions = (classConfs[compositionSkillId] ?? []).filter(
+          (c) => c.type === "composition",
+        );
+        content = (
+          <CompositionBuilder
+            skillId={skillId}
+            elements={elements}
+            elementSubChoices={prepConfig.elementSubChoices}
+            existingCompositions={existingCompositions}
+            existingConfig={existingConfig}
+            onConfirm={handleConfigConfirm}
+            onCancel={handleConfigCancel}
+          />
+        );
+        break;
+      }
+    }
+
+    if (!content) return null;
+
+    return (
+      <div className="mc-config-overlay" onClick={handleConfigCancel}>
+        <div className="mc-config-panel" onClick={(e) => e.stopPropagation()}>
+          {content}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -421,7 +644,16 @@ export function MasterCreation({
                 skills={classSkills}
                 acquisition={acq}
                 selectedSkillIds={skillSelections[s.id] ?? []}
+                skillConfigs={skillConfigs[s.id] ?? {}}
+                mysticCodes={prepConfig.mysticCodes}
+                familiarOptions={prepConfig.familiarOptions}
                 onSelectionChange={handleSkillChange}
+                onConfigRequest={(skillId, instanceIndex) =>
+                  handleConfigRequest(s.id, skillId, instanceIndex)
+                }
+                onRemoveInstance={(skillId, instanceIndex) =>
+                  handleRemoveInstance(s.id, skillId, instanceIndex)
+                }
               />
             );
           })}
@@ -457,6 +689,9 @@ export function MasterCreation({
 
       {/* Prep Status */}
       {prepState && <PrepStatusList prepState={prepState} myCharacterId={myCharacterId} />}
+
+      {/* Config Modal Overlay */}
+      {renderConfigModal()}
     </div>
   );
 }

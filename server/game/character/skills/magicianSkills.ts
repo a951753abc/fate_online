@@ -24,6 +24,7 @@ export const MAGICIAN_SKILLS: readonly SkillDef[] = Object.freeze([
       "你的TP上限增加［魔術師等級*10］，每日結束時恢復最大值十分之一。你在魔力感知的判定常時+2。使用魔術師技能時，你的達成值額外增加［精神］／4。 你需要使用【意志】做情報判定時，達成值+《2》。 你獲得［魔術師等級+1］的屬性點。並指定1~3種屬性，分配屬性點。爾後每當魔術師等級上升，可獲得1點屬性點分配屬性。然而你不能透過升級取得的點數，得到新的屬性。",
     tpReward: 0,
     endlessDestructionEligible: true,
+    configType: "attribute_distribution",
   }),
 
   // 思考的並列演算
@@ -104,6 +105,8 @@ export const MAGICIAN_SKILLS: readonly SkillDef[] = Object.freeze([
       "你擁有共享五感的使魔。使魔的能力可以從「狗」、「烏鴉」、「灰貓」任選一。你可以重複取得此特技，使魔死亡的話會於下個劇本復活。 或是在戰鬥外支付30點代價傷害復活。",
     tpReward: 0,
     endlessDestructionEligible: true,
+    repeatable: true,
+    configType: "familiar",
   }),
 
   // 禮裝所持
@@ -119,6 +122,8 @@ export const MAGICIAN_SKILLS: readonly SkillDef[] = Object.freeze([
     effectDescription: "你得到一個魔術禮裝，此特技可以重複取得。",
     tpReward: 0,
     endlessDestructionEligible: true,
+    repeatable: true,
+    configType: "mystic_code",
   }),
 
   // 暗示
@@ -167,6 +172,8 @@ export const MAGICIAN_SKILLS: readonly SkillDef[] = Object.freeze([
       "選擇三個名稱中有「要素」的技能，此技能的各項內容為所選要素中相關內容的相加。 此技能可重複取得，你可以選擇重新取得一個「魔術構成」，或是為現有的「魔術構成」增加一個「構成要素」。 同一種「要素」可以重複取得。",
     tpReward: 0,
     endlessDestructionEligible: true,
+    repeatable: true,
+    configType: "composition",
   }),
 
   // 道具作成
@@ -183,6 +190,7 @@ export const MAGICIAN_SKILLS: readonly SkillDef[] = Object.freeze([
       "你可以設定一種消耗性道具，最大數量為1~［你的魔術師等級*4］。劇本開始時持有最大數量。 此技能視為一種「魔術構成」，可選取兩項「要素」。每次使用此技能，需消耗一個道具。 使同一「魔術構成」《》內的數字追加［25-道具最大數量］點。",
     tpReward: 0,
     endlessDestructionEligible: true,
+    configType: "composition",
   }),
 
   // 魔眼保持
@@ -199,6 +207,7 @@ export const MAGICIAN_SKILLS: readonly SkillDef[] = Object.freeze([
       "你的TP上限增加［魔術師等級*5］。 此技能視為一種「魔術構成」，可選取兩項「要素」。並使該「魔術構成」《》內的數字追加［你的魔術師等級］點。",
     tpReward: 0,
     endlessDestructionEligible: true,
+    configType: "composition",
   }),
 
   // 反咒
@@ -392,6 +401,7 @@ export const MAGICIAN_SKILLS: readonly SkillDef[] = Object.freeze([
       "對目標造成《2D6》+ [本次支付代價+2]點傷害。 此要素須搭配攻擊類型或進攻類型。",
     tpReward: 0,
     endlessDestructionEligible: true,
+    compositionOnly: true,
   }),
 
   // 要素：準備
@@ -407,6 +417,7 @@ export const MAGICIAN_SKILLS: readonly SkillDef[] = Object.freeze([
     effectDescription: "此「魔術構成」的分類成為「準備階段」。",
     tpReward: 0,
     endlessDestructionEligible: true,
+    compositionOnly: true,
   }),
 
   // 要素：攻擊類型
@@ -423,6 +434,7 @@ export const MAGICIAN_SKILLS: readonly SkillDef[] = Object.freeze([
       "選擇近戰、射擊、精神其中一項，選擇後將無法更改。此「魔術構成」的分類成為「攻擊類型/(你選擇的分類)」。 選擇近戰時，此要素的代價傷害減少1點。",
     tpReward: 0,
     endlessDestructionEligible: true,
+    compositionOnly: true,
   }),
 
   // 要素：進攻
@@ -439,6 +451,7 @@ export const MAGICIAN_SKILLS: readonly SkillDef[] = Object.freeze([
       "選擇近戰、射擊、精神其中一項，選擇後將無法更改。此「魔術構成」的分類成為「進攻/(你選擇的分類)」。 選擇近戰時，此要素的代價傷害減少1點。",
     tpReward: 0,
     endlessDestructionEligible: true,
+    compositionOnly: true,
   }),
 
   // 要素：詠唱
@@ -455,6 +468,7 @@ export const MAGICIAN_SKILLS: readonly SkillDef[] = Object.freeze([
       "此「魔術構成」需要詠唱才能發動。 每小節詠唱使同一「魔術構成」《》內的數字追加1D6。 詠唱節數不能超過你的［魔術師等級］，因詠唱進入反擊階段時，未詠唱完的小節將不計入計算。",
     tpReward: 0,
     endlessDestructionEligible: true,
+    compositionOnly: true,
   }),
 
   // 要素：連續發動
@@ -471,6 +485,7 @@ export const MAGICIAN_SKILLS: readonly SkillDef[] = Object.freeze([
       "此「魔術構成」增加以下效果： 此技能使用後，你減少7點行動點，並且不會進入已行動狀態。",
     tpReward: 0,
     endlessDestructionEligible: true,
+    compositionOnly: true,
   }),
 
   // 要素：區域
@@ -487,6 +502,7 @@ export const MAGICIAN_SKILLS: readonly SkillDef[] = Object.freeze([
       "此「魔術構成」的指定目標從單一角色改為一個區域內所有角色。 每多支付10點代價傷害，可多指定一個區域。",
     tpReward: 0,
     endlessDestructionEligible: true,
+    compositionOnly: true,
   }),
 
   // 要素：防禦
@@ -503,6 +519,7 @@ export const MAGICIAN_SKILLS: readonly SkillDef[] = Object.freeze([
       "減少目標本回合受到的傷害《2D6》+[本次支付代價+2]點。 此要素須搭配其他輔助要素。",
     tpReward: 0,
     endlessDestructionEligible: true,
+    compositionOnly: true,
   }),
 
   // 要素：增益
@@ -518,6 +535,7 @@ export const MAGICIAN_SKILLS: readonly SkillDef[] = Object.freeze([
     effectDescription: "增加目標本回合一項戰鬥能力值《1D6》點。 此要素須搭配其他輔助要素。",
     tpReward: 0,
     endlessDestructionEligible: true,
+    compositionOnly: true,
   }),
 
   // 要素：持續效果
@@ -533,6 +551,7 @@ export const MAGICIAN_SKILLS: readonly SkillDef[] = Object.freeze([
     effectDescription: "使此「魔術構成」內帶有「本回合」的效果，效力延長一回合。",
     tpReward: 0,
     endlessDestructionEligible: true,
+    compositionOnly: true,
   }),
 
   // 要素：複數目標
@@ -548,6 +567,7 @@ export const MAGICIAN_SKILLS: readonly SkillDef[] = Object.freeze([
     effectDescription: "使此「魔術構成」可以指定複數目標。 每多支付3點代價傷害，可多指定一個。",
     tpReward: 0,
     endlessDestructionEligible: true,
+    compositionOnly: true,
   }),
 
   // 要素：減益
@@ -564,6 +584,7 @@ export const MAGICIAN_SKILLS: readonly SkillDef[] = Object.freeze([
       "減少目標本回合一項戰鬥能力值《1D6》點。 此「魔術構成」判定從以下方式擇一，選擇後不能更改： 【攻擊】造成實際傷害後發揮作用。 【精神】精神對決成功後發揮作用。",
     tpReward: 0,
     endlessDestructionEligible: true,
+    compositionOnly: true,
   }),
 
   // 要素：異常狀態
@@ -580,6 +601,7 @@ export const MAGICIAN_SKILLS: readonly SkillDef[] = Object.freeze([
       "此「魔術構成」增加以下效果擇一，選擇後不能更改： 【痲痹】：【行動值】會變成1，而且不能進行移動宣言。 【鎖定】：當你受到來自鎖定者的攻擊時，鎖定者的命中判定+3，會心-1。 【燃燒】：結束階段時受到2D6+［你的魔術師等級〕點火屬性傷害。 【束縛】：所有動作和被動的達成值-3。 【恍惚】：無法使用分類：常時以外的特技。可透過消費15點TP解除。 【中毒】：結束階段時承受10%的最大HP百分...",
     tpReward: 0,
     endlessDestructionEligible: true,
+    compositionOnly: true,
   }),
 
   // 要素：治療
@@ -595,5 +617,6 @@ export const MAGICIAN_SKILLS: readonly SkillDef[] = Object.freeze([
     effectDescription: "增加目標的HP《2D6》+ [本次支付代價*3]點。",
     tpReward: 0,
     endlessDestructionEligible: true,
+    compositionOnly: true,
   }),
 ]);

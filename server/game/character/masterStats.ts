@@ -28,6 +28,8 @@ export function validateAllocation(
   const seen = new Set<MasterLevelId>();
   let totalLevel = 0;
 
+  let totalStarting = 0;
+
   for (const entry of allocation) {
     if (!MASTER_LEVEL_IDS.includes(entry.levelId)) {
       return `未知的級別: ${entry.levelId}`;
@@ -44,12 +46,26 @@ export function validateAllocation(
     if (entry.level > MAX_LEVEL) {
       return `級別等級最多為 ${MAX_LEVEL}: ${entry.levelId}`;
     }
+    if (!Number.isInteger(entry.startingLevel)) {
+      return `起始等級必須為整數: ${entry.levelId}`;
+    }
+    if (entry.startingLevel < 0) {
+      return `起始等級不可為負數: ${entry.levelId}`;
+    }
+    if (entry.startingLevel > entry.level) {
+      return `起始等級不可大於總等級: ${entry.levelId}`;
+    }
     seen.add(entry.levelId);
     totalLevel += entry.level;
+    totalStarting += entry.startingLevel;
   }
 
   if (totalLevel !== expectedTotal) {
     return `等級總和必須為 ${expectedTotal}，目前為 ${totalLevel}`;
+  }
+
+  if (totalStarting !== config.startingPoints) {
+    return `起始等級總和必須為 ${config.startingPoints}，目前為 ${totalStarting}`;
   }
 
   return null;
@@ -68,10 +84,10 @@ export function computeBaseAbilities(
 
   for (const entry of allocation) {
     const def = getMasterLevelDef(entry.levelId);
-    body += def.baseStats.body * entry.level;
-    perception += def.baseStats.perception * entry.level;
-    reason += def.baseStats.reason * entry.level;
-    will += def.baseStats.will * entry.level;
+    body += def.baseStats.body * entry.startingLevel;
+    perception += def.baseStats.perception * entry.startingLevel;
+    reason += def.baseStats.reason * entry.startingLevel;
+    will += def.baseStats.will * entry.startingLevel;
   }
 
   const base = { body, perception, reason, will };

@@ -51,6 +51,13 @@ export interface SkillPrereq {
 
 // --- 技能定義 ---
 
+/** 取得時需要的子選擇類型 */
+export type SkillConfigType =
+  | "familiar" // 使魔：選類型
+  | "mystic_code" // 禮裝所持：選禮裝
+  | "composition" // 魔術構成：選 N 個要素
+  | "attribute_distribution"; // 魔術迴路：分配屬性點
+
 export interface SkillDef {
   readonly id: SkillId;
   readonly classId: MasterLevelId | "shared";
@@ -63,7 +70,10 @@ export interface SkillDef {
   readonly costDescription: string; // 代價描述（原始文字，如「代價傷害10」）
   readonly effectDescription: string;
   readonly tpReward: number; // TP（情緒）獎勵
-  readonly endlessDestructionEligible: boolean; // 可登錄無盡破壞
+  readonly endlessDestructionEligible: boolean; // 可登錄無盡破壊
+  readonly repeatable?: boolean; // 可重複取得（使魔、禮裝所持、魔術構成等）
+  readonly compositionOnly?: boolean; // 僅作為魔術構成部件（要素系列），不佔技能槽位
+  readonly configType?: SkillConfigType; // 取得時需要子選擇
 }
 
 // --- 級別技能取得規則 ---
@@ -111,13 +121,71 @@ export interface ClassSkillAcquisition {
   readonly specialRules: readonly SpecialLevelRule[]; // 級別專屬特殊規則
 }
 
+// --- 技能實例配置（取得時的子選擇）---
+
+/** 魔術屬性（地/水/火/風/空） */
+export type MagicAttribute = "earth" | "water" | "fire" | "wind" | "void";
+
+/** 有效的魔術屬性值（衍生自 MagicAttribute 型別） */
+export const VALID_MAGIC_ATTRIBUTES: readonly MagicAttribute[] = Object.freeze([
+  "earth",
+  "water",
+  "fire",
+  "wind",
+  "void",
+]);
+
+/** 使魔類型 */
+export type FamiliarType = "dog" | "crow" | "cat";
+
+/** 使魔配置 */
+export interface FamiliarConfig {
+  readonly type: "familiar";
+  readonly familiarType: FamiliarType;
+}
+
+/** 禮裝配置 */
+export interface MysticCodeConfig {
+  readonly type: "mystic_code";
+  readonly mysticCodeId: string;
+}
+
+/** 魔術構成的要素條目 */
+export interface CompositionElementEntry {
+  readonly elementSkillId: SkillId;
+  readonly subChoice?: string; // 要素內的永久選擇（如 要素：攻擊類型 → "melee"）
+}
+
+/** 魔術構成配置 */
+export interface CompositionConfig {
+  readonly type: "composition";
+  readonly mode: "new" | "expand"; // 新建構成 or 擴充既有構成
+  readonly targetIndex?: number; // expand 時：擴充哪個既有構成（在同技能的 configs 中的 index）
+  readonly elements: readonly CompositionElementEntry[];
+}
+
+/** 屬性分配配置（魔術迴路） */
+export interface AttributeDistributionConfig {
+  readonly type: "attribute_distribution";
+  readonly distribution: Readonly<Partial<Record<MagicAttribute, number>>>;
+}
+
+/** 技能實例配置（discriminated union） */
+export type SkillInstanceConfig =
+  | FamiliarConfig
+  | MysticCodeConfig
+  | CompositionConfig
+  | AttributeDistributionConfig;
+
 // --- 玩家技能選擇 ---
 
 /** 單一級別的技能選擇結果 */
 export interface SkillSelection {
   readonly classId: MasterLevelId;
   readonly classLevel: number;
-  readonly selectedSkillIds: readonly SkillId[];
+  readonly selectedSkillIds: readonly SkillId[]; // 允許重複（repeatable 技能）
+  readonly skillConfigs?: Readonly<Record<SkillId, readonly SkillInstanceConfig[]>>;
+  // key = skillId, value = 每個實例的配置（按 selectedSkillIds 中的出現順序對應）
 }
 
 /** 無盡破壞登錄 slot */

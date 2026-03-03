@@ -1,8 +1,15 @@
 import { useMemo } from "react";
-import type { SkillView, ClassAcquisitionView, InitialStepView } from "../../types/protocol.js";
+import type {
+  SkillView,
+  ClassAcquisitionView,
+  InitialStepView,
+  SkillInstanceConfigPayload,
+  MysticCodeView,
+  FamiliarOptionView,
+} from "../../types/protocol.js";
 import { computeExpectedSkillCount } from "../../utils/skillUtils.js";
 
-// --- 觸發類型中文標籤 ---
+// --- Trigger type labels ---
 
 const TRIGGER_LABELS: Readonly<Record<string, string>> = {
   constant: "常時",
@@ -15,6 +22,16 @@ const TRIGGER_LABELS: Readonly<Record<string, string>> = {
   special: "特殊",
 };
 
+// --- Attribute labels (for config summary) ---
+
+const ATTRIBUTE_LABELS: Readonly<Record<string, string>> = {
+  earth: "地",
+  water: "水",
+  fire: "火",
+  wind: "風",
+  void: "空",
+};
+
 // --- Props ---
 
 interface SkillSelectionPanelProps {
@@ -24,7 +41,12 @@ interface SkillSelectionPanelProps {
   readonly skills: readonly SkillView[];
   readonly acquisition: ClassAcquisitionView;
   readonly selectedSkillIds: readonly string[];
+  readonly skillConfigs?: Readonly<Record<string, readonly SkillInstanceConfigPayload[]>>;
+  readonly mysticCodes?: readonly MysticCodeView[];
+  readonly familiarOptions?: readonly FamiliarOptionView[];
   readonly onSelectionChange: (classId: string, skillIds: readonly string[]) => void;
+  readonly onConfigRequest?: (skillId: string, instanceIndex?: number) => void;
+  readonly onRemoveInstance?: (skillId: string, instanceIndex: number) => void;
 }
 
 // --- Component ---
@@ -36,14 +58,17 @@ export function SkillSelectionPanel({
   skills,
   acquisition,
   selectedSkillIds,
+  skillConfigs = {},
+  mysticCodes = [],
+  familiarOptions = [],
   onSelectionChange,
+  onConfigRequest,
+  onRemoveInstance,
 }: SkillSelectionPanelProps) {
   const expectedTotal = useMemo(
     () => computeExpectedSkillCount(acquisition, classLevel),
     [acquisition, classLevel],
   );
-
-  const selectedSet = useMemo(() => new Set(selectedSkillIds), [selectedSkillIds]);
 
   const skillMap = useMemo(() => {
     const map = new Map<string, SkillView>();
@@ -51,11 +76,23 @@ export function SkillSelectionPanel({
     return map;
   }, [skills]);
 
-  // Single pass: separate normal and extra skills
+  // Count occurrences of each skill in selectedSkillIds (supports repeatable)
+  const selectedCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const id of selectedSkillIds) {
+      counts.set(id, (counts.get(id) ?? 0) + 1);
+    }
+    return counts;
+  }, [selectedSkillIds]);
+
+  // Single pass: separate normal, extra, and composition-only skills
   const { normalSkills, extraSkills } = useMemo(() => {
     const normal: SkillView[] = [];
     const extra: SkillView[] = [];
-    for (const s of skills) (s.isExtra ? extra : normal).push(s);
+    for (const s of skills) {
+      if (s.compositionOnly) continue; // Filter out compositionOnly
+      (s.isExtra ? extra : normal).push(s);
+    }
     return { normalSkills: normal, extraSkills: extra };
   }, [skills]);
 
@@ -99,14 +136,33 @@ export function SkillSelectionPanel({
 
   const isComplete = selectedSkillIds.length === expectedTotal;
 
-  const toggleSkill = (skillId: string) => {
-    if (selectedSet.has(skillId)) {
+  // --- Click handlers ---
+
+  /** Handle click on a skill card (dispatches based on skill type) */
+  const handleSkillClick = (skill: SkillView) => {
+    // ConfigType skills: delegate to parent for config panel
+    if (skill.configType) {
+      onConfigRequest?.(skill.id);
+      return;
+    }
+
+    // Repeatable without configType: always add (no toggle off from pool)
+    if (skill.repeatable) {
+      if (selectedSkillIds.length < expectedTotal) {
+        onSelectionChange(classId, [...selectedSkillIds, skill.id]);
+      }
+      return;
+    }
+
+    // Normal toggle
+    const count = selectedCounts.get(skill.id) ?? 0;
+    if (count > 0) {
       onSelectionChange(
         classId,
-        selectedSkillIds.filter((id) => id !== skillId),
+        selectedSkillIds.filter((id) => id !== skill.id),
       );
     } else if (selectedSkillIds.length < expectedTotal) {
-      onSelectionChange(classId, [...selectedSkillIds, skillId]);
+      onSelectionChange(classId, [...selectedSkillIds, skill.id]);
     }
   };
 
@@ -116,6 +172,51 @@ export function SkillSelectionPanel({
     const without = selectedSkillIds.filter((id) => !stepOptions.has(id));
     onSelectionChange(classId, [...without, skillId]);
   };
+
+  // Precompute Maps for config summary lookups
+  const mysticCodeMap = useMemo(() => new Map(mysticCodes.map((m) => [m.id, m])), [mysticCodes]);
+  const familiarMap = useMemo(
+    () => new Map(familiarOptions.map((f) => [f.type, f])),
+    [familiarOptions],
+  );
+
+  // --- Config summary items ---
+
+  const configSummaryItems = useMemo(() => {
+    const items: {
+      skillId: string;
+      name: string;
+      instanceIndex: number;
+      configSummary: string;
+      hasConfig: boolean;
+    }[] = [];
+    const instanceCounters = new Map<string, number>();
+
+    for (const skillId of selectedSkillIds) {
+      const skill = skillMap.get(skillId);
+      if (!skill?.configType) continue;
+
+      const idx = instanceCounters.get(skillId) ?? 0;
+      instanceCounters.set(skillId, idx + 1);
+
+      const configs = skillConfigs[skillId] ?? [];
+      const config = configs[idx];
+      const isRepeatable = skill.repeatable;
+      const instanceLabel =
+        isRepeatable && (idx > 0 || (selectedCounts.get(skillId) ?? 0) > 1) ? ` #${idx + 1}` : "";
+
+      items.push({
+        skillId,
+        name: skill.nameJa + instanceLabel,
+        instanceIndex: idx,
+        configSummary: config
+          ? formatConfigSummary(config, skillMap, mysticCodeMap, familiarMap)
+          : "未設定",
+        hasConfig: !!config,
+      });
+    }
+    return items;
+  }, [selectedSkillIds, skillMap, skillConfigs, selectedCounts, mysticCodeMap, familiarMap]);
 
   return (
     <div className="mc-skill-panel">
@@ -128,6 +229,40 @@ export function SkillSelectionPanel({
         </span>
       </div>
 
+      {/* Config Summary (for skills with configType) */}
+      {configSummaryItems.length > 0 && (
+        <div className="mc-skill-summary">
+          <div className="mc-skill-summary-label">已設定技能</div>
+          {configSummaryItems.map((item) => (
+            <div
+              key={`${item.skillId}-${item.instanceIndex}`}
+              className={`mc-skill-summary-item ${item.hasConfig ? "" : "unconfigured"}`}
+            >
+              <span className="mc-skill-summary-name">{item.name}</span>
+              <span className="mc-skill-summary-config">{item.configSummary}</span>
+              <div className="mc-skill-summary-actions">
+                <button
+                  onClick={() => onConfigRequest?.(item.skillId, item.instanceIndex)}
+                  className="mc-skill-summary-edit"
+                  type="button"
+                  title="編輯"
+                >
+                  ✎
+                </button>
+                <button
+                  onClick={() => onRemoveInstance?.(item.skillId, item.instanceIndex)}
+                  className="mc-skill-summary-remove"
+                  type="button"
+                  title="移除"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Initial Steps */}
       {acquisition.initialSteps.map((step, stepIdx) => (
         <div key={stepIdx} className="mc-skill-step">
@@ -138,15 +273,20 @@ export function SkillSelectionPanel({
               {(step.skillIds ?? []).map((sid) => {
                 const skill = skillMap.get(sid);
                 if (!skill) return null;
-                const isSelected = selectedSet.has(sid);
+                const isSelected = (selectedCounts.get(sid) ?? 0) > 0;
                 return (
                   <button
                     key={sid}
                     className={`mc-skill-card required ${isSelected ? "selected" : ""}`}
-                    onClick={() => toggleSkill(sid)}
+                    onClick={() => handleSkillClick(skill)}
                     type="button"
                   >
                     <SkillCardContent skill={skill} />
+                    {skill.configType && (
+                      <span className="mc-skill-config-indicator">
+                        {isSelected && (skillConfigs[sid]?.length ?? 0) > 0 ? "✓" : "⚙"}
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -158,12 +298,14 @@ export function SkillSelectionPanel({
               {(step.skillIds ?? []).map((sid) => {
                 const skill = skillMap.get(sid);
                 if (!skill) return null;
-                const isSelected = selectedSet.has(sid);
+                const isSelected = (selectedCounts.get(sid) ?? 0) > 0;
                 return (
                   <button
                     key={sid}
                     className={`mc-skill-card choice ${isSelected ? "selected" : ""}`}
-                    onClick={() => handleChooseOne(step, sid)}
+                    onClick={() =>
+                      skill.configType ? handleSkillClick(skill) : handleChooseOne(step, sid)
+                    }
                     type="button"
                   >
                     <SkillCardContent skill={skill} />
@@ -188,19 +330,20 @@ export function SkillSelectionPanel({
               // Skip skills that belong to initial steps (required + choose_one)
               if (allInitialStepSkillIds.has(skill.id)) return null;
 
-              const isSelected = selectedSet.has(skill.id);
+              const count = selectedCounts.get(skill.id) ?? 0;
+              const isSelected = count > 0;
+
               const canSelect = isSelected || selectedSkillIds.length < expectedTotal;
 
               return (
-                <button
+                <SkillPoolCard
                   key={skill.id}
-                  className={`mc-skill-card ${isSelected ? "selected" : ""} ${!canSelect ? "disabled" : ""}`}
-                  onClick={() => canSelect && toggleSkill(skill.id)}
-                  disabled={!canSelect && !isSelected}
-                  type="button"
-                >
-                  <SkillCardContent skill={skill} />
-                </button>
+                  skill={skill}
+                  count={count}
+                  isSelected={isSelected}
+                  canSelect={canSelect}
+                  onClickCard={handleSkillClick}
+                />
               );
             })}
           </div>
@@ -211,19 +354,20 @@ export function SkillSelectionPanel({
               <div className="mc-skill-extra-label">額外特技</div>
               <div className="mc-skill-pool-grid">
                 {extraSkills.map((skill) => {
-                  const isSelected = selectedSet.has(skill.id);
+                  const count = selectedCounts.get(skill.id) ?? 0;
+                  const isSelected = count > 0;
                   const canSelect = isSelected || selectedSkillIds.length < expectedTotal;
 
                   return (
-                    <button
+                    <SkillPoolCard
                       key={skill.id}
-                      className={`mc-skill-card extra ${isSelected ? "selected" : ""} ${!canSelect ? "disabled" : ""}`}
-                      onClick={() => canSelect && toggleSkill(skill.id)}
-                      disabled={!canSelect && !isSelected}
-                      type="button"
-                    >
-                      <SkillCardContent skill={skill} />
-                    </button>
+                      skill={skill}
+                      count={count}
+                      isSelected={isSelected}
+                      canSelect={canSelect}
+                      variant="extra"
+                      onClickCard={handleSkillClick}
+                    />
                   );
                 })}
               </div>
@@ -232,6 +376,82 @@ export function SkillSelectionPanel({
         </div>
       )}
     </div>
+  );
+}
+
+// --- Config summary formatter ---
+
+function formatConfigSummary(
+  config: SkillInstanceConfigPayload,
+  skillMap: ReadonlyMap<string, SkillView>,
+  mysticCodeMap: ReadonlyMap<string, MysticCodeView>,
+  familiarMap: ReadonlyMap<string, FamiliarOptionView>,
+): string {
+  switch (config.type) {
+    case "attribute_distribution": {
+      const dist = config.distribution as Readonly<Record<string, number>> | undefined;
+      if (!dist) return "";
+      return Object.entries(dist)
+        .filter(([, v]) => v > 0)
+        .map(([attr, val]) => `${ATTRIBUTE_LABELS[attr] ?? attr}${val}`)
+        .join(" ");
+    }
+    case "familiar": {
+      const ft = config.familiarType as string;
+      return familiarMap.get(ft)?.nameCht ?? ft;
+    }
+    case "mystic_code": {
+      const mcId = config.mysticCodeId as string;
+      return mysticCodeMap.get(mcId)?.nameCht ?? mcId;
+    }
+    case "composition": {
+      const elements = config.elements as
+        | readonly { elementSkillId: string; subChoice?: string }[]
+        | undefined;
+      if (!elements) return "";
+      return elements
+        .map((e) => {
+          const eDef = skillMap.get(e.elementSkillId);
+          let name = eDef?.nameCht ?? e.elementSkillId;
+          if (e.subChoice) name += `(${e.subChoice})`;
+          return name;
+        })
+        .join(" + ");
+    }
+    default:
+      return "";
+  }
+}
+
+// --- Skill Pool Card (shared for normal + extra pools) ---
+
+function SkillPoolCard({
+  skill,
+  count,
+  isSelected,
+  canSelect,
+  variant,
+  onClickCard,
+}: {
+  readonly skill: SkillView;
+  readonly count: number;
+  readonly isSelected: boolean;
+  readonly canSelect: boolean;
+  readonly variant?: "extra";
+  readonly onClickCard: (skill: SkillView) => void;
+}) {
+  const variantClass = variant ? ` ${variant}` : "";
+  return (
+    <button
+      className={`mc-skill-card${variantClass} ${isSelected && !skill.repeatable ? "selected" : ""} ${!canSelect ? "disabled" : ""}`}
+      onClick={() => canSelect && onClickCard(skill)}
+      disabled={!canSelect && !isSelected}
+      type="button"
+    >
+      <SkillCardContent skill={skill} />
+      {skill.repeatable && count > 0 && <span className="mc-skill-count-badge">×{count}</span>}
+      {skill.configType && <span className="mc-skill-config-badge">⚙</span>}
+    </button>
   );
 }
 

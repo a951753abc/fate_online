@@ -104,8 +104,8 @@ const threeGroups: readonly GroupState[] = [
 ];
 
 const validAllocation: readonly LevelAllocation[] = [
-  { levelId: "magician", level: 2 },
-  { levelId: "executor", level: 2 },
+  { levelId: "magician", level: 2, startingLevel: 2 },
+  { levelId: "executor", level: 2, startingLevel: 1 },
 ];
 
 const validFreePoint: AbilityStatKey = "reason";
@@ -117,6 +117,11 @@ const validSkillSelections = [
     classId: "magician",
     classLevel: 2,
     selectedSkillIds: ["mag-magic-circuit", "mag-reinforcement", "mag-parallel-computation"],
+    skillConfigs: {
+      "mag-magic-circuit": [
+        { type: "attribute_distribution", distribution: { earth: 2, fire: 1 } },
+      ],
+    },
   },
   {
     classId: "executor",
@@ -221,7 +226,9 @@ describe("prepManager", () => {
     it("allows re-submission (overwrite)", async () => {
       await submitMasterBuild("R1", "m0", validAllocation, validFreePoint, validSkillSelections);
 
-      const newAllocation: readonly LevelAllocation[] = [{ levelId: "fighter", level: 4 }];
+      const newAllocation: readonly LevelAllocation[] = [
+        { levelId: "fighter", level: 4, startingLevel: 3 },
+      ];
       // Fighter LV4: 2 initial (required + 1 free) + 3 level-up = 5
       const fighterSkills = [
         {
@@ -273,7 +280,9 @@ describe("prepManager", () => {
     });
 
     it("rejects invalid allocation (wrong total)", async () => {
-      const badAllocation: readonly LevelAllocation[] = [{ levelId: "magician", level: 2 }];
+      const badAllocation: readonly LevelAllocation[] = [
+        { levelId: "magician", level: 2, startingLevel: 2 },
+      ];
       const result = await submitMasterBuild("R1", "m0", badAllocation, validFreePoint, []);
 
       expect(result.success).toBe(false);
@@ -281,7 +290,7 @@ describe("prepManager", () => {
     });
 
     it("rejects unknown levelId", async () => {
-      const badAllocation = [{ levelId: "ninja" as never, level: 4 }];
+      const badAllocation = [{ levelId: "ninja" as never, level: 4, startingLevel: 3 }];
       const result = await submitMasterBuild("R1", "m0", badAllocation, validFreePoint, []);
 
       expect(result.success).toBe(false);

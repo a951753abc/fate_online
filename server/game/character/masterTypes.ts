@@ -39,7 +39,8 @@ export interface MasterLevelDef {
 /** 單一級別的等級分配 */
 export interface LevelAllocation {
   readonly levelId: MasterLevelId;
-  readonly level: number; // ≥ 1
+  readonly level: number; // 總等級（起始+升級）≥ 1
+  readonly startingLevel: number; // 起始等級（用於基本能力値）≥ 1, ≤ level
 }
 
 /** 等級分配設定 (房主控制) */

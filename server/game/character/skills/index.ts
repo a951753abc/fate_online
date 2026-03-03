@@ -6,11 +6,20 @@ export type {
   AttackDomain,
   SkillPrereqType,
   SkillPrereq,
+  SkillConfigType,
   SkillDef,
   InitialSkillStepType,
   InitialSkillStep,
   SpecialLevelRule,
   ClassSkillAcquisition,
+  MagicAttribute,
+  FamiliarType,
+  FamiliarConfig,
+  MysticCodeConfig,
+  CompositionElementEntry,
+  CompositionConfig,
+  AttributeDistributionConfig,
+  SkillInstanceConfig,
   SkillSelection,
   EndlessDestructionSlot,
   SwordsmanSchool,
@@ -30,6 +39,22 @@ export { SWORDSMAN_SKILLS } from "./swordsmanSkills.js";
 export { FIGHTER_SKILLS } from "./fighterSkills.js";
 export { HUNTER_SKILLS } from "./hunterSkills.js";
 export { ESPER_SKILLS } from "./esperSkills.js";
+
+export { MYSTIC_CODES, MYSTIC_CODE_IDS, findMysticCode, getMysticCode } from "./mysticCodes.js";
+export type { MysticCodeDef } from "./mysticCodes.js";
+
+export {
+  FAMILIAR_OPTIONS,
+  ELEMENT_SUB_CHOICES,
+  ELEMENTS_WITH_SUB_CHOICE,
+  getElementSubChoice,
+  isValidSubChoice,
+} from "./magicianConfigs.js";
+export type {
+  FamiliarOptionDef,
+  ElementSubChoiceDef,
+  ElementSubChoiceOption,
+} from "./magicianConfigs.js";
 
 import type { SkillDef, SkillId } from "./types.js";
 import type { MasterLevelId } from "../masterTypes.js";

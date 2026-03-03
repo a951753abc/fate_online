@@ -14,23 +14,23 @@ import type { LevelAllocation, LevelConfig } from "../masterTypes.js";
 
 describe("validateAllocation", () => {
   it("accepts single level matching gameLevel", () => {
-    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 4 }];
+    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 4, startingLevel: 3 }];
     expect(validateAllocation(alloc)).toBeNull();
   });
 
   it("accepts two levels summing to gameLevel", () => {
     const alloc: LevelAllocation[] = [
-      { levelId: "magician", level: 2 },
-      { levelId: "swordsman", level: 2 },
+      { levelId: "magician", level: 2, startingLevel: 2 },
+      { levelId: "swordsman", level: 2, startingLevel: 1 },
     ];
     expect(validateAllocation(alloc)).toBeNull();
   });
 
   it("accepts three levels summing to gameLevel", () => {
     const alloc: LevelAllocation[] = [
-      { levelId: "magician", level: 2 },
-      { levelId: "swordsman", level: 1 },
-      { levelId: "hunter", level: 1 },
+      { levelId: "magician", level: 2, startingLevel: 1 },
+      { levelId: "swordsman", level: 1, startingLevel: 1 },
+      { levelId: "hunter", level: 1, startingLevel: 1 },
     ];
     expect(validateAllocation(alloc)).toBeNull();
   });
@@ -41,65 +41,95 @@ describe("validateAllocation", () => {
 
   it("rejects more than 3 classes", () => {
     const alloc: LevelAllocation[] = [
-      { levelId: "magician", level: 1 },
-      { levelId: "swordsman", level: 1 },
-      { levelId: "hunter", level: 1 },
-      { levelId: "fighter", level: 1 },
+      { levelId: "magician", level: 1, startingLevel: 1 },
+      { levelId: "swordsman", level: 1, startingLevel: 1 },
+      { levelId: "hunter", level: 1, startingLevel: 1 },
+      { levelId: "fighter", level: 1, startingLevel: 1 },
     ];
     expect(validateAllocation(alloc)).toContain("最多只能選擇");
   });
 
   it("rejects duplicate level IDs", () => {
     const alloc: LevelAllocation[] = [
-      { levelId: "magician", level: 2 },
-      { levelId: "magician", level: 2 },
+      { levelId: "magician", level: 2, startingLevel: 1 },
+      { levelId: "magician", level: 2, startingLevel: 1 },
     ];
     expect(validateAllocation(alloc)).toContain("不可重複");
   });
 
   it("rejects non-integer level", () => {
-    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 2.5 }];
+    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 2.5, startingLevel: 1 }];
     expect(validateAllocation(alloc)).toContain("整數");
   });
 
   it("rejects fractional level below 1 with integer error (not minimum error)", () => {
-    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 0.5 }];
+    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 0.5, startingLevel: 1 }];
     expect(validateAllocation(alloc)).toContain("整數");
   });
 
   it("rejects level < 1", () => {
-    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 0 }];
+    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 0, startingLevel: 1 }];
     expect(validateAllocation(alloc)).toContain("至少為 1");
   });
 
   it("rejects level > 10", () => {
-    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 11 }];
+    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 11, startingLevel: 3 }];
     expect(validateAllocation(alloc)).toContain("最多為 10");
   });
 
   it("rejects total != gameLevel", () => {
-    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 3 }];
+    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 3, startingLevel: 3 }];
     expect(validateAllocation(alloc)).toContain("等級總和必須為 4");
   });
 
   it("rejects unknown level ID", () => {
-    const alloc = [{ levelId: "unknown" as never, level: 4 }];
+    const alloc = [{ levelId: "unknown" as never, level: 4, startingLevel: 3 }];
     expect(validateAllocation(alloc)).toContain("未知的級別");
   });
 
   it("works with custom config (gameLevel=6)", () => {
     const config: LevelConfig = { startingPoints: 3, gameLevel: 6, maxClasses: 3 };
     const alloc: LevelAllocation[] = [
-      { levelId: "magician", level: 3 },
-      { levelId: "swordsman", level: 3 },
+      { levelId: "magician", level: 3, startingLevel: 2 },
+      { levelId: "swordsman", level: 3, startingLevel: 1 },
     ];
     expect(validateAllocation(alloc, config)).toBeNull();
   });
 
   it("works with custom config (gameLevel=3, starting)", () => {
     const config: LevelConfig = { startingPoints: 3, gameLevel: 3, maxClasses: 3 };
-    const alloc: LevelAllocation[] = [{ levelId: "fighter", level: 3 }];
+    const alloc: LevelAllocation[] = [{ levelId: "fighter", level: 3, startingLevel: 3 }];
     expect(validateAllocation(alloc, config)).toBeNull();
+  });
+
+  // --- startingLevel validation ---
+
+  it("rejects non-integer startingLevel", () => {
+    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 4, startingLevel: 2.5 }];
+    expect(validateAllocation(alloc)).toContain("起始等級必須為整數");
+  });
+
+  it("rejects negative startingLevel", () => {
+    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 4, startingLevel: -1 }];
+    expect(validateAllocation(alloc)).toContain("起始等級不可為負數");
+  });
+
+  it("accepts startingLevel=0 for classes added during upgrade", () => {
+    const alloc: LevelAllocation[] = [
+      { levelId: "magician", level: 3, startingLevel: 3 },
+      { levelId: "executor", level: 1, startingLevel: 0 },
+    ];
+    expect(validateAllocation(alloc)).toBeNull();
+  });
+
+  it("rejects startingLevel > level", () => {
+    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 2, startingLevel: 3 }];
+    expect(validateAllocation(alloc)).toContain("起始等級不可大於總等級");
+  });
+
+  it("rejects startingLevel total != startingPoints", () => {
+    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 4, startingLevel: 2 }];
+    expect(validateAllocation(alloc)).toContain("起始等級總和必須為 3");
   });
 });
 
@@ -107,21 +137,21 @@ describe("validateAllocation", () => {
 
 describe("computeBaseAbilities", () => {
   it("single level magician LV3: (2×3, 3×3, 5×3, 2×3) = 6/9/15/6", () => {
-    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 3 }];
+    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 3, startingLevel: 3 }];
     const stats = computeBaseAbilities(alloc, "body");
     expect(stats).toEqual({ body: 7, perception: 9, reason: 15, will: 6 }); // +1 body
   });
 
   it("single level magician LV3, free point on reason", () => {
-    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 3 }];
+    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 3, startingLevel: 3 }];
     const stats = computeBaseAbilities(alloc, "reason");
     expect(stats).toEqual({ body: 6, perception: 9, reason: 16, will: 6 });
   });
 
   it("dual level: fighter LV2 + esper LV1", () => {
     const alloc: LevelAllocation[] = [
-      { levelId: "fighter", level: 2 },
-      { levelId: "esper", level: 1 },
+      { levelId: "fighter", level: 2, startingLevel: 2 },
+      { levelId: "esper", level: 1, startingLevel: 1 },
     ];
     // fighter: 5×2=10, 2×2=4, 2×2=4, 3×2=6
     // esper:   2×1=2,  2×1=2, 2×1=2, 2×1=2
@@ -132,9 +162,9 @@ describe("computeBaseAbilities", () => {
 
   it("triple level: magician LV2 + swordsman LV1 + hunter LV1 (gameLevel=4)", () => {
     const alloc: LevelAllocation[] = [
-      { levelId: "magician", level: 2 },
-      { levelId: "swordsman", level: 1 },
-      { levelId: "hunter", level: 1 },
+      { levelId: "magician", level: 2, startingLevel: 2 },
+      { levelId: "swordsman", level: 1, startingLevel: 1 },
+      { levelId: "hunter", level: 1, startingLevel: 1 },
     ];
     // magician:  2×2=4, 3×2=6, 5×2=10, 2×2=4
     // swordsman: 4×1=4, 4×1=4, 2×1=2,  2×1=2
@@ -144,8 +174,16 @@ describe("computeBaseAbilities", () => {
     expect(stats).toEqual({ body: 12, perception: 13, reason: 15, will: 9 });
   });
 
+  it("uses startingLevel (not total level) for base abilities", () => {
+    // magician starting=3, total=4 → base uses startingLevel=3
+    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 4, startingLevel: 3 }];
+    const stats = computeBaseAbilities(alloc, "body");
+    // 2×3+1=7, 3×3=9, 5×3=15, 2×3=6
+    expect(stats).toEqual({ body: 7, perception: 9, reason: 15, will: 6 });
+  });
+
   it("result is frozen", () => {
-    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 4 }];
+    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 4, startingLevel: 4 }];
     expect(Object.isFrozen(computeBaseAbilities(alloc, "body"))).toBe(true);
   });
 });
@@ -212,7 +250,7 @@ describe("computeBaseCombat", () => {
 
 describe("computeLevelModifiers", () => {
   it("single level: magician LV4 modifiers", () => {
-    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 4 }];
+    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 4, startingLevel: 3 }];
     const mods = computeLevelModifiers(alloc);
     expect(mods).toEqual({
       melee: 2,
@@ -227,8 +265,8 @@ describe("computeLevelModifiers", () => {
 
   it("multi level: fighter LV2 + esper LV1", () => {
     const alloc: LevelAllocation[] = [
-      { levelId: "fighter", level: 2 },
-      { levelId: "esper", level: 1 },
+      { levelId: "fighter", level: 2, startingLevel: 2 },
+      { levelId: "esper", level: 1, startingLevel: 1 },
     ];
     // fighter LV2: melee=1, ranged=0, spirit=0, action=2, hp=10, focus=8, defense=1
     // esper LV1:   melee=0, ranged=0, spirit=1, action=0, hp=0,  focus=0, defense=0
@@ -246,9 +284,9 @@ describe("computeLevelModifiers", () => {
 
   it("triple level sums all modifiers", () => {
     const alloc: LevelAllocation[] = [
-      { levelId: "executor", level: 1 },
-      { levelId: "hunter", level: 1 },
-      { levelId: "esper", level: 1 },
+      { levelId: "executor", level: 1, startingLevel: 1 },
+      { levelId: "hunter", level: 1, startingLevel: 1 },
+      { levelId: "esper", level: 1, startingLevel: 1 },
     ];
     // executor LV1: 1,1,1,1,2,2,0
     // hunter LV1:   -2,2,-2,-2,0,0,0
@@ -266,7 +304,7 @@ describe("computeLevelModifiers", () => {
   });
 
   it("result is frozen", () => {
-    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 4 }];
+    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 4, startingLevel: 3 }];
     expect(Object.isFrozen(computeLevelModifiers(alloc))).toBe(true);
   });
 });
@@ -308,8 +346,8 @@ describe("computeFinalCombat", () => {
 describe("computeAllStats", () => {
   it("TRPG example: fighter LV2 + esper LV1, free→will", () => {
     const alloc: LevelAllocation[] = [
-      { levelId: "fighter", level: 2 },
-      { levelId: "esper", level: 1 },
+      { levelId: "fighter", level: 2, startingLevel: 2 },
+      { levelId: "esper", level: 1, startingLevel: 1 },
     ];
     const result = computeAllStats(alloc, "will");
 
@@ -345,7 +383,7 @@ describe("computeAllStats", () => {
   });
 
   it("specialist: magician LV4, free→reason", () => {
-    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 4 }];
+    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 4, startingLevel: 4 }];
     const result = computeAllStats(alloc, "reason");
 
     // base: 2×4=8, 3×4=12, 5×4+1=21, 2×4=8
@@ -383,8 +421,50 @@ describe("computeAllStats", () => {
     });
   });
 
+  it("startingLevel vs total level: base uses starting, modifiers use total", () => {
+    // magician: starting=3, total=4
+    const alloc: LevelAllocation[] = [{ levelId: "magician", level: 4, startingLevel: 3 }];
+    const result = computeAllStats(alloc, "body");
+
+    // base: 2×3+1=7, 3×3=9, 5×3=15, 2×3=6 (uses startingLevel=3)
+    expect(result.baseAbilities).toEqual({ body: 7, perception: 9, reason: 15, will: 6 });
+    // bonuses: floor(7/3)=2, floor(9/3)=3, floor(15/3)=5, floor(6/3)=2
+    expect(result.bonuses).toEqual({ body: 2, perception: 3, reason: 5, will: 2 });
+    // baseCombat: melee=2+3=5, ranged=3+5=8, spirit=5+2=7, action=2+2=4
+    //   hp=(2+5)×5=35, focus=(3+2)×5=25
+    expect(result.baseCombat).toEqual({
+      melee: 5,
+      ranged: 8,
+      spirit: 7,
+      action: 4,
+      hp: 35,
+      focus: 25,
+      defense: 0,
+    });
+    // level modifiers: uses total LV4 → modifiers[3]
+    expect(result.levelModifiers).toEqual({
+      melee: 2,
+      ranged: 3,
+      spirit: 3,
+      action: 2,
+      hp: 15,
+      focus: 15,
+      defense: 0,
+    });
+    // final = baseCombat + levelModifiers
+    expect(result.finalCombat).toEqual({
+      melee: 7,
+      ranged: 11,
+      spirit: 10,
+      action: 6,
+      hp: 50,
+      focus: 40,
+      defense: 0,
+    });
+  });
+
   it("all objects in the chain are frozen", () => {
-    const alloc: LevelAllocation[] = [{ levelId: "executor", level: 4 }];
+    const alloc: LevelAllocation[] = [{ levelId: "executor", level: 4, startingLevel: 3 }];
     const result = computeAllStats(alloc, "body");
     expect(Object.isFrozen(result)).toBe(true);
     expect(Object.isFrozen(result.baseAbilities)).toBe(true);

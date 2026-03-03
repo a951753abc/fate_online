@@ -174,6 +174,9 @@ export interface SkillView {
   readonly effectDescription: string;
   readonly tpReward: number;
   readonly prerequisites: readonly SkillPrereqView[];
+  readonly repeatable?: boolean;
+  readonly compositionOnly?: boolean;
+  readonly configType?: string;
 }
 
 export interface InitialStepView {
@@ -190,6 +193,40 @@ export interface ClassAcquisitionView {
   readonly bonusLevels: readonly number[];
 }
 
+// --- Skill config view types (client-facing) ---
+
+export interface MysticCodeView {
+  readonly id: string;
+  readonly nameJa: string;
+  readonly nameCht: string;
+  readonly category: "consumable" | "equipment";
+  readonly effectDescription: string;
+}
+
+export interface FamiliarOptionView {
+  readonly type: string;
+  readonly nameJa: string;
+  readonly nameCht: string;
+  readonly description: string;
+}
+
+export interface ElementSubChoiceOptionView {
+  readonly value: string;
+  readonly label: string;
+}
+
+export interface ElementSubChoiceView {
+  readonly elementSkillId: string;
+  readonly choiceKey: string;
+  readonly label: string;
+  readonly options: readonly ElementSubChoiceOptionView[];
+}
+
+export interface SkillInstanceConfigPayload {
+  readonly type: string;
+  readonly [key: string]: unknown;
+}
+
 export interface PrepConfig {
   readonly startingPoints: number;
   readonly gameLevel: number;
@@ -197,16 +234,24 @@ export interface PrepConfig {
   readonly availableLevels: readonly MasterLevelView[];
   readonly classSkills: Readonly<Record<string, readonly SkillView[]>>;
   readonly classAcquisitions: readonly ClassAcquisitionView[];
+  readonly mysticCodes: readonly MysticCodeView[];
+  readonly familiarOptions: readonly FamiliarOptionView[];
+  readonly elementSubChoices: readonly ElementSubChoiceView[];
 }
 
 export interface SkillSelectionPayload {
   readonly classId: string;
   readonly classLevel: number;
   readonly selectedSkillIds: readonly string[];
+  readonly skillConfigs?: Readonly<Record<string, readonly SkillInstanceConfigPayload[]>>;
 }
 
 export interface PrepSubmitPayload {
-  readonly allocation: readonly { readonly levelId: string; readonly level: number }[];
+  readonly allocation: readonly {
+    readonly levelId: string;
+    readonly level: number;
+    readonly startingLevel: number;
+  }[];
   readonly freePoint: "body" | "perception" | "reason" | "will";
   readonly skillSelections: readonly SkillSelectionPayload[];
 }

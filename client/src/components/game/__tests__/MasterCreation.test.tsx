@@ -23,6 +23,9 @@ const mockPrepConfig: PrepConfig = {
     { classId: "executor", initialSteps: [], perLevelUpCount: 0, bonusLevels: [] },
     { classId: "fighter", initialSteps: [], perLevelUpCount: 0, bonusLevels: [] },
   ],
+  mysticCodes: [],
+  familiarOptions: [],
+  elementSubChoices: [],
 };
 
 const mockPrepState: PrepStatePayload = {
@@ -212,7 +215,7 @@ describe("MasterCreation", () => {
       fireEvent.click(screen.getByText("送出"));
 
       expect(props.onSubmit).toHaveBeenCalledWith({
-        allocation: [{ levelId: "magician", level: 4 }],
+        allocation: [{ levelId: "magician", level: 4, startingLevel: 3 }],
         freePoint: "body",
         skillSelections: [{ classId: "magician", classLevel: 4, selectedSkillIds: [] }],
       } satisfies PrepSubmitPayload);
@@ -230,8 +233,8 @@ describe("MasterCreation", () => {
 
       expect(props.onSubmit).toHaveBeenCalledWith({
         allocation: [
-          { levelId: "magician", level: 3 },
-          { levelId: "executor", level: 1 },
+          { levelId: "magician", level: 3, startingLevel: 3 },
+          { levelId: "executor", level: 1, startingLevel: 0 },
         ],
         freePoint: "body",
         skillSelections: [
