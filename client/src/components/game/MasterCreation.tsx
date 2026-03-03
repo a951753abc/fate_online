@@ -7,6 +7,7 @@ import type {
   PrepStatus,
   MasterLevelView,
 } from "../../types/protocol.js";
+import "./MasterCreation.css";
 
 type AbilityKey = PrepSubmitPayload["freePoint"];
 
@@ -26,6 +27,9 @@ const COMBAT_LABELS: Record<string, string> = {
   focus: "集中力",
   defense: "防禦點",
 };
+
+/** Visual max for stat bars (base stats range 0-5 per class) */
+const STAT_BAR_MAX = 6;
 
 interface SelectedLevel {
   readonly id: string;
@@ -57,7 +61,6 @@ export function MasterCreation({
   const [freePoint, setFreePoint] = useState<AbilityKey>("body");
   const [step, setStep] = useState<CreationStep>("starting");
 
-  // Derive isReady from server state to avoid client-server desync
   const isReady =
     prepState?.players.find((p) => p.characterId === myCharacterId)?.status === "ready";
 
@@ -82,11 +85,14 @@ export function MasterCreation({
   // Servant waiting view
   if (myRole === "servant") {
     return (
-      <div style={containerStyle}>
-        <h2 style={headerStyle}>準備階段</h2>
-        <p style={{ color: "#8b949e", textAlign: "center" }}>
-          サーヴァント角色系統尚未開放，請等待マスター完成創角。
-        </p>
+      <div className="mc-container">
+        <div className="mc-header">
+          <h2 className="mc-title">準備階段</h2>
+          <div className="mc-divider" />
+        </div>
+        <div className="mc-servant-wait">
+          <p className="mc-servant-text">サーヴァント角色系統尚未開放，請等待マスター完成創角。</p>
+        </div>
         {prepState && <PrepStatusList prepState={prepState} myCharacterId={myCharacterId} />}
       </div>
     );
@@ -120,26 +126,21 @@ export function MasterCreation({
   const handleUpgradeSelect = (id: string) => {
     const exists = selected.find((s) => s.id === id);
     if (exists) {
-      // +1 to existing class
       setSelected(selected.map((s) => (s.id === id ? { ...s, level: s.level + 1 } : s)));
     } else if (selected.length < prepConfig.maxClasses) {
-      // Add new class at LV1
       setSelected([...selected, { id, level: 1 }]);
     }
   };
 
   const handleResetUpgrade = () => {
-    // Revert to starting allocation (remove upgrade)
     const startingTotal = prepConfig.startingPoints;
     let pointsToRemove = totalAllocated - startingTotal;
-    // Remove from last added levels
     const reverted = [...selected].reverse().reduce<SelectedLevel[]>((acc, s) => {
       if (pointsToRemove > 0) {
         const reduce = Math.min(pointsToRemove, s.level - (s.level > 1 ? 1 : 0));
-        // If this would drop to 0 and was a newly added class (level=1), remove it
         if (s.level - reduce < 1) {
           pointsToRemove -= s.level;
-          return acc; // drop this class
+          return acc;
         }
         pointsToRemove -= reduce;
         return [{ ...s, level: s.level - reduce }, ...acc];
@@ -155,22 +156,37 @@ export function MasterCreation({
     onSubmit({ allocation, freePoint });
   };
 
-  const stepLabel =
-    step === "starting"
-      ? `Step 1: 起始配點（${prepConfig.startingPoints} 等）`
-      : `Step 2: 升級（+${upgradeLevels}）`;
-
   return (
-    <div style={containerStyle}>
-      <h2 style={headerStyle}>マスター創角</h2>
-      <div style={stepIndicatorStyle}>{stepLabel}</div>
+    <div className="mc-container">
+      {/* Header */}
+      <div className="mc-header">
+        <h2 className="mc-title">マスター創角</h2>
+        <div className="mc-divider" />
+      </div>
+
+      {/* Stepper */}
+      <div className="mc-stepper">
+        <div className="mc-step">
+          <span className={`mc-step-num ${step === "starting" ? "active" : "done"}`}>1</span>
+          <span className={`mc-step-label ${step === "starting" ? "active" : ""}`}>
+            {`Step 1: 起始配點（${prepConfig.startingPoints} 等）`}
+          </span>
+        </div>
+        <div className={`mc-step-line ${step === "upgrade" ? "done" : ""}`} />
+        <div className="mc-step">
+          <span className={`mc-step-num ${step === "upgrade" ? "active" : ""}`}>2</span>
+          <span className={`mc-step-label ${step === "upgrade" ? "active" : ""}`}>
+            {`Step 2: 升級（+${upgradeLevels}）`}
+          </span>
+        </div>
+      </div>
 
       {/* Step 1: Level Selection (locked in step 2) */}
-      <section style={sectionStyle}>
-        <h3 style={subHeaderStyle}>
+      <section className="mc-section">
+        <h3 className="mc-section-title">
           級別選擇（{selected.length}/{prepConfig.maxClasses}）
         </h3>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+        <div className="mc-level-grid">
           {prepConfig.availableLevels.map((lv) => {
             const isSelected = selected.some((s) => s.id === lv.id);
             return (
@@ -178,17 +194,17 @@ export function MasterCreation({
                 key={lv.id}
                 onClick={() => toggleLevel(lv.id)}
                 disabled={locked}
-                style={{
-                  ...levelCardStyle,
-                  background: isSelected ? "#1f6feb" : "#21262d",
-                  border: isSelected ? "1px solid #388bfd" : "1px solid #30363d",
-                  opacity: locked ? 0.6 : 1,
-                }}
+                className={`mc-level-card ${isSelected ? "selected" : ""}`}
+                aria-pressed={isSelected}
               >
-                <strong>{lv.nameJa}</strong>
-                <div style={{ fontSize: "0.8em", color: "#8b949e", marginTop: "4px" }}>
-                  體{lv.baseStats.body} 知{lv.baseStats.perception} 理{lv.baseStats.reason} 意
-                  {lv.baseStats.will}
+                <div className="mc-level-name">
+                  <strong>{lv.nameJa}</strong>
+                </div>
+                <div className="mc-level-stats">
+                  <StatBarItem label="體" value={lv.baseStats.body} />
+                  <StatBarItem label="知" value={lv.baseStats.perception} />
+                  <StatBarItem label="理" value={lv.baseStats.reason} />
+                  <StatBarItem label="意" value={lv.baseStats.will} />
                 </div>
               </button>
             );
@@ -198,50 +214,49 @@ export function MasterCreation({
 
       {/* Step 1: Level Allocation */}
       {selected.length > 0 && step === "starting" && (
-        <section style={sectionStyle}>
-          <h3 style={subHeaderStyle}>起始等級分配（剩餘 {remaining} 點）</h3>
-          {selected.map((s) => {
-            const def = levelMap.get(s.id);
-            return (
-              <div key={s.id} style={allocationRowStyle}>
-                <span style={{ minWidth: "80px" }}>{def?.nameJa ?? s.id}</span>
-                <button
-                  onClick={() => adjustLevel(s.id, -1)}
-                  disabled={s.level <= 1}
-                  style={pmButtonStyle}
-                >
-                  -
-                </button>
-                <span style={{ minWidth: "30px", textAlign: "center", fontWeight: "bold" }}>
-                  LV{s.level}
-                </span>
-                <button
-                  onClick={() => adjustLevel(s.id, 1)}
-                  disabled={remaining <= 0}
-                  style={pmButtonStyle}
-                >
-                  +
-                </button>
-              </div>
-            );
-          })}
+        <section className="mc-section">
+          <h3 className="mc-section-title">起始等級分配（剩餘 {remaining} 點）</h3>
+          <div className="mc-alloc-list">
+            {selected.map((s) => {
+              const def = levelMap.get(s.id);
+              return (
+                <div key={s.id} className="mc-alloc-row">
+                  <span className="mc-alloc-name">{def?.nameJa ?? s.id}</span>
+                  <div className="mc-alloc-controls">
+                    <button
+                      onClick={() => adjustLevel(s.id, -1)}
+                      disabled={s.level <= 1}
+                      className="mc-pm-btn"
+                    >
+                      -
+                    </button>
+                    <span className="mc-alloc-level">LV{s.level}</span>
+                    <button
+                      onClick={() => adjustLevel(s.id, 1)}
+                      disabled={remaining <= 0}
+                      className="mc-pm-btn"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </section>
       )}
 
       {/* Step 1: Free Point */}
       {selected.length > 0 && step === "starting" && (
-        <section style={sectionStyle}>
-          <h3 style={subHeaderStyle}>自由配點（+1）</h3>
-          <div style={{ display: "flex", gap: "8px" }}>
+        <section className="mc-section">
+          <h3 className="mc-section-title">自由配點（+1）</h3>
+          <div className="mc-free-group">
             {(Object.keys(ABILITY_LABELS) as AbilityKey[]).map((key) => (
               <button
                 key={key}
                 onClick={() => setFreePoint(key)}
-                style={{
-                  ...freePointButtonStyle,
-                  background: freePoint === key ? "#1f6feb" : "#21262d",
-                  border: freePoint === key ? "1px solid #388bfd" : "1px solid #30363d",
-                }}
+                className={`mc-free-btn ${freePoint === key ? "active" : ""}`}
+                aria-pressed={freePoint === key}
               >
                 {ABILITY_LABELS[key]}
               </button>
@@ -252,15 +267,11 @@ export function MasterCreation({
 
       {/* Step 1: Confirm Starting */}
       {step === "starting" && (
-        <div style={{ marginTop: "16px" }}>
+        <div className="mc-actions">
           <button
             onClick={handleConfirmStarting}
             disabled={!canConfirmStarting}
-            style={{
-              ...actionButtonStyle,
-              background: canConfirmStarting ? "#238636" : "#21262d",
-              cursor: canConfirmStarting ? "pointer" : "not-allowed",
-            }}
+            className="mc-btn mc-btn-confirm"
           >
             確認起始能力
           </button>
@@ -269,14 +280,12 @@ export function MasterCreation({
 
       {/* Step 2: Upgrade Selection */}
       {step === "upgrade" && !isReady && remaining > 0 && (
-        <section style={sectionStyle}>
-          <h3 style={subHeaderStyle}>
+        <section className="mc-section">
+          <h3 className="mc-section-title">
             選擇升級（+{upgradeLevels}，剩餘 {remaining}）
           </h3>
-          <p style={{ fontSize: "0.85em", color: "#8b949e", marginBottom: "8px" }}>
-            選擇一個級別升級，可以是既有級別 +1 或新級別 LV1。
-          </p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+          <p className="mc-upgrade-desc">選擇一個級別升級，可以是既有級別 +1 或新級別 LV1。</p>
+          <div className="mc-level-grid">
             {prepConfig.availableLevels.map((lv) => {
               const existing = selected.find((s) => s.id === lv.id);
               const canAdd = existing || selected.length < prepConfig.maxClasses;
@@ -285,15 +294,12 @@ export function MasterCreation({
                   key={lv.id}
                   onClick={() => handleUpgradeSelect(lv.id)}
                   disabled={!canAdd || remaining <= 0}
-                  style={{
-                    ...levelCardStyle,
-                    background: existing ? "#1f6feb" : "#21262d",
-                    border: existing ? "1px solid #388bfd" : "1px solid #30363d",
-                    opacity: !canAdd || remaining <= 0 ? 0.4 : 1,
-                  }}
+                  className={`mc-level-card ${existing ? "selected" : ""}`}
                 >
-                  <strong>{lv.nameJa}</strong>
-                  <div style={{ fontSize: "0.8em", color: "#8b949e", marginTop: "4px" }}>
+                  <div className="mc-level-name">
+                    <strong>{lv.nameJa}</strong>
+                  </div>
+                  <div className={`mc-level-hint ${existing ? "upgrade" : "new"}`}>
                     {existing ? `LV${existing.level} → LV${existing.level + 1}` : "新規 LV1"}
                   </div>
                 </button>
@@ -305,46 +311,28 @@ export function MasterCreation({
 
       {/* Step 2: Current Allocation Summary */}
       {step === "upgrade" && (
-        <section style={sectionStyle}>
-          <h3 style={subHeaderStyle}>最終等級配置</h3>
+        <section className="mc-section">
+          <h3 className="mc-section-title">最終等級配置</h3>
           {selected.map((s) => {
             const def = levelMap.get(s.id);
             return (
-              <div key={s.id} style={allocationRowStyle}>
-                <span style={{ minWidth: "80px" }}>{def?.nameJa ?? s.id}</span>
-                <span style={{ fontWeight: "bold" }}>LV{s.level}</span>
+              <div key={s.id} className="mc-summary-row">
+                <span className="mc-summary-name">{def?.nameJa ?? s.id}</span>
+                <span className="mc-summary-level">LV{s.level}</span>
               </div>
             );
           })}
-          <div style={{ marginTop: "4px", fontSize: "0.85em", color: "#8b949e" }}>
-            自由配點: {ABILITY_LABELS[freePoint]} +1
-          </div>
+          <div className="mc-summary-free">自由配點: {ABILITY_LABELS[freePoint]} +1</div>
         </section>
       )}
 
       {/* Step 2: Actions */}
       {step === "upgrade" && !isReady && (
-        <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
-          <button
-            onClick={handleResetUpgrade}
-            style={{
-              ...actionButtonStyle,
-              background: "#21262d",
-              border: "1px solid #30363d",
-              cursor: "pointer",
-            }}
-          >
+        <div className="mc-actions">
+          <button onClick={handleResetUpgrade} className="mc-btn mc-btn-secondary">
             重新選擇
           </button>
-          <button
-            onClick={handleSubmit}
-            disabled={!canSubmit}
-            style={{
-              ...actionButtonStyle,
-              background: canSubmit ? "#238636" : "#21262d",
-              cursor: canSubmit ? "pointer" : "not-allowed",
-            }}
-          >
+          <button onClick={handleSubmit} disabled={!canSubmit} className="mc-btn mc-btn-confirm">
             送出
           </button>
         </div>
@@ -352,30 +340,21 @@ export function MasterCreation({
 
       {/* Ready button (after server confirms build) */}
       {hasStats && !isReady && (
-        <div style={{ marginTop: "12px" }}>
-          <button
-            onClick={onReady}
-            style={{ ...actionButtonStyle, background: "#1f6feb", cursor: "pointer" }}
-          >
+        <div className="mc-actions">
+          <button onClick={onReady} className="mc-btn mc-btn-ready">
             確認就緒
           </button>
         </div>
       )}
 
       {/* Error */}
-      {buildResult && !buildResult.success && (
-        <div style={{ marginTop: "8px", color: "#f85149" }}>{buildResult.error}</div>
-      )}
+      {buildResult && !buildResult.success && <div className="mc-error">{buildResult.error}</div>}
 
       {/* Stats Display */}
       {hasStats && buildResult.stats && <StatsPanel stats={buildResult.stats} />}
 
       {/* Ready Status */}
-      {isReady && (
-        <div style={{ marginTop: "12px", color: "#58a6ff", textAlign: "center" }}>
-          已就緒，等待其他玩家...
-        </div>
-      )}
+      {isReady && <div className="mc-ready-msg">已就緒，等待其他玩家...</div>}
 
       {/* Prep Status */}
       {prepState && <PrepStatusList prepState={prepState} myCharacterId={myCharacterId} />}
@@ -385,34 +364,71 @@ export function MasterCreation({
 
 // === Sub-components ===
 
-function StatsPanel({ stats }: { readonly stats: NonNullable<PrepResultPayload["stats"]> }) {
+/** Mini stat bar for level cards */
+function StatBarItem({ label, value }: { readonly label: string; readonly value: number }) {
+  const pct = Math.min((value / STAT_BAR_MAX) * 100, 100);
   return (
-    <div style={{ marginTop: "16px" }}>
-      <h3 style={subHeaderStyle}>數值計算結果</h3>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+    <div className="mc-stat-item">
+      <span className="mc-stat-item-label">{label}</span>
+      <div className="mc-stat-item-bar">
+        <div className="mc-stat-item-bar-fill" style={{ width: `${pct}%` }} />
+      </div>
+      <span className="mc-stat-item-val">{value}</span>
+    </div>
+  );
+}
+
+/** Stat bar tier for the result panel */
+function statBarTier(value: number, max: number): string {
+  const ratio = value / max;
+  if (ratio >= 0.65) return "high";
+  if (ratio >= 0.35) return "mid";
+  return "low";
+}
+
+function StatsPanel({ stats }: { readonly stats: NonNullable<PrepResultPayload["stats"]> }) {
+  const abilityMax = Math.max(
+    ...Object.values(stats.baseAbilities),
+    8, // minimum visual ceiling
+  );
+
+  return (
+    <div>
+      <div className="mc-section mc-stats-section">
+        <h3 className="mc-section-title">數值計算結果</h3>
+      </div>
+      <div className="mc-stats-grid">
         {/* Base Abilities + Bonuses */}
-        <div style={statBoxStyle}>
-          <h4 style={statBoxHeaderStyle}>基本能力値 / 能力紅利</h4>
+        <div className="mc-stat-box">
+          <h4 className="mc-stat-box-header">基本能力値 / 能力紅利</h4>
           {(Object.keys(ABILITY_LABELS) as AbilityKey[]).map((key) => (
-            <div key={key} style={statRowStyle}>
-              <span>{ABILITY_LABELS[key]}</span>
+            <div key={key} className="mc-stat-row">
+              <span className="mc-stat-label">{ABILITY_LABELS[key]}</span>
+              <div className="mc-stat-bar">
+                <div
+                  className={`mc-stat-bar-fill ${statBarTier(stats.baseAbilities[key], abilityMax)}`}
+                  style={{ width: `${(stats.baseAbilities[key] / abilityMax) * 100}%` }}
+                />
+              </div>
               <span>
-                {stats.baseAbilities[key]}{" "}
-                <span style={{ color: "#8b949e" }}>（+{stats.bonuses[key]}）</span>
+                <span className="mc-stat-value">{stats.baseAbilities[key]}</span>
+                <span className="mc-stat-detail">（+{stats.bonuses[key]}）</span>
               </span>
             </div>
           ))}
         </div>
 
         {/* Final Combat */}
-        <div style={statBoxStyle}>
-          <h4 style={statBoxHeaderStyle}>最終戰鬥値</h4>
+        <div className="mc-stat-box">
+          <h4 className="mc-stat-box-header">最終戰鬥値</h4>
           {Object.entries(COMBAT_LABELS).map(([key, label]) => (
-            <div key={key} style={statRowStyle}>
-              <span>{label}</span>
+            <div key={key} className="mc-stat-row">
+              <span className="mc-stat-label">{label}</span>
               <span>
-                {stats.finalCombat[key as keyof typeof stats.finalCombat]}{" "}
-                <span style={{ color: "#8b949e" }}>
+                <span className="mc-stat-value">
+                  {stats.finalCombat[key as keyof typeof stats.finalCombat]}
+                </span>
+                <span className="mc-stat-detail">
                   ({stats.baseCombat[key as keyof typeof stats.baseCombat]}+
                   {stats.levelModifiers[key as keyof typeof stats.levelModifiers]})
                 </span>
@@ -431,12 +447,6 @@ const STATUS_LABELS: Record<PrepStatus, string> = {
   ready: "就緒",
 };
 
-const STATUS_COLORS: Record<PrepStatus, string> = {
-  pending: "#8b949e",
-  submitted: "#d29922",
-  ready: "#3fb950",
-};
-
 function PrepStatusList({
   prepState,
   myCharacterId,
@@ -444,136 +454,27 @@ function PrepStatusList({
   readonly prepState: PrepStatePayload;
   readonly myCharacterId: string;
 }) {
+  const masters = prepState.players.filter((p) => p.role === "master");
   return (
-    <div style={{ marginTop: "16px" }}>
-      <h3 style={subHeaderStyle}>準備狀態</h3>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-        {prepState.players
-          .filter((p) => p.role === "master")
-          .map((p) => (
-            <span
-              key={p.characterId}
-              style={{
-                padding: "4px 10px",
-                borderRadius: "12px",
-                fontSize: "0.85em",
-                background: p.characterId === myCharacterId ? "#30363d" : "#21262d",
-                color: STATUS_COLORS[p.status],
-                border: `1px solid ${STATUS_COLORS[p.status]}`,
-                fontWeight: p.characterId === myCharacterId ? "bold" : "normal",
-              }}
-            >
-              {p.characterId.startsWith("npc-") ? "NPC" : p.characterId.slice(0, 8)}{" "}
-              {STATUS_LABELS[p.status]}
-            </span>
-          ))}
+    <div className="mc-prep">
+      <div className="mc-section">
+        <h3 className="mc-section-title">準備狀態</h3>
+        <div className="mc-prep-badges">
+          {masters.map((p, i) => {
+            // Never reveal NPC identity — all non-self players show as "玩家 N"
+            const displayName = p.characterId === myCharacterId ? "你" : `玩家 ${i + 1}`;
+            return (
+              <span
+                key={p.characterId}
+                className={`mc-prep-badge ${p.characterId === myCharacterId ? "me" : ""}`}
+              >
+                <span className={`mc-prep-dot ${p.status}`} />
+                {displayName} {STATUS_LABELS[p.status]}
+              </span>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
 }
-
-// === Styles ===
-
-const containerStyle: React.CSSProperties = {
-  maxWidth: "800px",
-  margin: "20px auto",
-  padding: "24px",
-  color: "#c9d1d9",
-};
-
-const headerStyle: React.CSSProperties = {
-  color: "#f0f6fc",
-  marginBottom: "20px",
-  borderBottom: "1px solid #30363d",
-  paddingBottom: "12px",
-};
-
-const stepIndicatorStyle: React.CSSProperties = {
-  color: "#58a6ff",
-  fontSize: "0.9em",
-  marginBottom: "12px",
-  padding: "6px 12px",
-  background: "#161b22",
-  borderRadius: "6px",
-  border: "1px solid #21262d",
-};
-
-const subHeaderStyle: React.CSSProperties = {
-  color: "#c9d1d9",
-  fontSize: "1em",
-  marginBottom: "8px",
-};
-
-const sectionStyle: React.CSSProperties = {
-  marginTop: "16px",
-  padding: "12px 16px",
-  background: "#161b22",
-  borderRadius: "8px",
-  border: "1px solid #30363d",
-};
-
-const levelCardStyle: React.CSSProperties = {
-  padding: "10px 16px",
-  borderRadius: "6px",
-  color: "#c9d1d9",
-  cursor: "pointer",
-  textAlign: "left",
-  minWidth: "110px",
-};
-
-const allocationRowStyle: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: "12px",
-  padding: "6px 0",
-};
-
-const pmButtonStyle: React.CSSProperties = {
-  width: "32px",
-  height: "32px",
-  borderRadius: "6px",
-  border: "1px solid #30363d",
-  background: "#21262d",
-  color: "#c9d1d9",
-  cursor: "pointer",
-  fontSize: "1.1em",
-  fontWeight: "bold",
-};
-
-const freePointButtonStyle: React.CSSProperties = {
-  padding: "8px 16px",
-  borderRadius: "6px",
-  color: "#c9d1d9",
-  cursor: "pointer",
-};
-
-const actionButtonStyle: React.CSSProperties = {
-  padding: "10px 24px",
-  borderRadius: "6px",
-  border: "none",
-  color: "#fff",
-  fontWeight: "bold",
-  fontSize: "1em",
-};
-
-const statBoxStyle: React.CSSProperties = {
-  padding: "12px",
-  background: "#161b22",
-  borderRadius: "8px",
-  border: "1px solid #30363d",
-};
-
-const statBoxHeaderStyle: React.CSSProperties = {
-  color: "#58a6ff",
-  fontSize: "0.9em",
-  marginBottom: "8px",
-  borderBottom: "1px solid #21262d",
-  paddingBottom: "4px",
-};
-
-const statRowStyle: React.CSSProperties = {
-  display: "flex",
-  justifyContent: "space-between",
-  padding: "2px 0",
-  fontSize: "0.9em",
-};
