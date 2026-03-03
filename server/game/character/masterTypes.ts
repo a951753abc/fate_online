@@ -57,3 +57,53 @@ export interface ComputedStats {
   readonly levelModifiers: CombatModifiers; // 級別修正合計
   readonly finalCombat: CombatModifiers; // 最終戰鬥値
 }
+
+// === 情緒系統（資料結構先行，運行時機制留 Phase 3）===
+
+export type EmotionId = string;
+export type EmotionVariant = "normal" | "black";
+
+/** 感情定義（千夜月姫 TRPG 自由扮演系統） */
+export interface EmotionDef {
+  readonly id: EmotionId;
+  readonly nameJa: string;
+  readonly nameCht: string;
+  readonly variant: EmotionVariant;
+  readonly defaultBond: number;
+}
+
+// === 風格/背反律 ===
+
+export type StyleId = string;
+export type AntinomyTrigger = "constant" | "interrupt" | "general" | "preparation";
+
+/** 風格的級別限制（有些風格需要特定級別才可選） */
+export interface StyleClassRestriction {
+  readonly classId: MasterLevelId;
+  readonly minLevel?: number; // 未指定 = 持有該級別即可
+}
+
+/** 背反律定義（風格附帶的黑暗面能力） */
+export interface AntinomyDef {
+  readonly nameJa: string;
+  readonly nameCht: string;
+  readonly trigger: AntinomyTrigger;
+  readonly emotionGained?: {
+    readonly emotionId: EmotionId;
+    readonly bond?: number;
+  };
+  readonly effectDescription: string;
+  readonly effectParams: Readonly<Record<string, number | string>>;
+}
+
+/** 風格定義（角色先天性・根源性的性質傾向） */
+export interface StyleDef {
+  readonly id: StyleId;
+  readonly nameJa: string;
+  readonly nameCht: string;
+  readonly antinomy: AntinomyDef;
+  readonly classRestrictions?: readonly StyleClassRestriction[]; // OR 邏輯：任一滿足即可
+  readonly hasAwakening: boolean;
+  readonly awakeningCondition?: string;
+  readonly awakeningEffect?: string;
+}

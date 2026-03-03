@@ -1,0 +1,1941 @@
+{
+  "magician": {
+    "classId": "magician",
+    "acquisitionRules": "取得特技 ▲ 初期取得： 得到「魔術迴路」、然後再選擇一個自己喜歡的特技。 升級： 等級上升之時、選取一個喜歡的特技。5等、10等時，可以額外再取得一個特技。",
+    "sections": [
+      {
+        "sectionId": "description_skill1",
+        "sectionName": "一般特技",
+        "isExtra": false,
+        "skillCount": 14,
+        "skills": [
+          {
+            "name": "魔術迴路",
+            "isDividepoint": true,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你的TP上限增加［魔術師等級*10］，每日結束時恢復最大值十分之一。你在魔力感知的判定常時+2。使用魔術師技能時，你的達成值額外增加［精神］／4。 你需要使用【意志】做情報判定時，達成值+《2》。 你獲得［魔術師等級+1］的屬性點。並指定1~3種屬性，分配屬性點。爾後每當魔術師等級上升，可獲得1點屬性點分配屬性。然而你不能透過升級取得的點數，得到新的屬性。"
+          },
+          {
+            "name": "思考的並列演算",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "代價傷害2",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你的【理智】判定達成值常時+2。 在你行為判定之後使用，達成值+1D6(這個數值不能超過你的魔術師等級)，使用後行動值-4。"
+          },
+          {
+            "name": "強化",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "代價傷害10",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "以同區域角色1人所持武器、或是分類：攻擊類型技能為對象。傷害+《4》，並具有概念武裝效果。此效果持續到結束階段。 在施放時，你可以以每回合5點的代價傷害將這個技能的效果回合數延長。 你可以在進行基本能力判定前使用，使該次達成值+3。"
+          },
+          {
+            "name": "防禦結界",
+            "isDividepoint": true,
+            "trigger": "準備階段",
+            "cost": "代價傷害15點",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "因應你的屬性，展開保護自己的防禦式。若持有多種屬性，會同時發動。 結束階段需付出10點的代價傷害維持效果。每多支付15代價傷害，你可以增加一名隊友作為這個技能的目標對象。 ►地：你增加［地屬性點］防禦。 ►水：攻擊側的傷害減少［水屬性點］D6。 ►火：攻擊側實傷階段後受到(1D6-2)*［火屬性點］傷害。 ►風：你增加［風屬性點］迴避判定。 ►空&其他：請洽GM。"
+          },
+          {
+            "name": "魔術刻印",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你的魔術使用代價輕減四分之一（包含待機延遲）。 你的TP額外增加50點上限，每到準備階段，你會恢復［你的魔術師等級X3］點TP。每到結束階段，你會恢復［你的魔術師等級］點HP。"
+          },
+          {
+            "name": "使魔",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你擁有共享五感的使魔。使魔的能力可以從「狗」、「烏鴉」、「灰貓」任選一。你可以重複取得此特技，使魔死亡的話會於下個劇本復活。 或是在戰鬥外支付30點代價傷害復活。"
+          },
+          {
+            "name": "禮裝所持",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你得到一個魔術禮裝，此特技可以重複取得。"
+          },
+          {
+            "name": "暗示",
+            "isDividepoint": false,
+            "trigger": "通用／中斷",
+            "cost": "代價傷害15點",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你可以使用暗示。戰鬥中使用時，你與對象進行精神對決，獲勝的話，對手的行動減去你的［魔術師等級］。這個技能的達成值，需扣減對象的［魔術師等級］。"
+          },
+          {
+            "name": "防禦魔術",
+            "isDividepoint": false,
+            "trigger": "中斷",
+            "cost": "任意",
+            "tpReward": "0",
+            "restriction": "魔術刻印",
+            "effect": "實際傷害前使用。你可以把攻擊側的傷害減去［本次支付代價／3］，在這之後，直到戰鬥結束前你的防禦點+2。"
+          },
+          {
+            "name": "魔術構成",
+            "isDividepoint": false,
+            "trigger": "特殊",
+            "cost": "特殊",
+            "tpReward": "特殊",
+            "restriction": "無",
+            "effect": "選擇三個名稱中有「要素」的技能，此技能的各項內容為所選要素中相關內容的相加。 此技能可重複取得，你可以選擇重新取得一個「魔術構成」，或是為現有的「魔術構成」增加一個「構成要素」。 同一種「要素」可以重複取得。"
+          },
+          {
+            "name": "道具作成",
+            "isDividepoint": false,
+            "trigger": "特殊",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你可以設定一種消耗性道具，最大數量為1~［你的魔術師等級*4］。劇本開始時持有最大數量。 此技能視為一種「魔術構成」，可選取兩項「要素」。每次使用此技能，需消耗一個道具。 使同一「魔術構成」《》內的數字追加［25-道具最大數量］點。"
+          },
+          {
+            "name": "魔眼保持",
+            "isDividepoint": false,
+            "trigger": "常時/特殊",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你的TP上限增加［魔術師等級*5］。 此技能視為一種「魔術構成」，可選取兩項「要素」。並使該「魔術構成」《》內的數字追加［你的魔術師等級］點。"
+          },
+          {
+            "name": "反咒",
+            "isDividepoint": false,
+            "trigger": "中斷",
+            "cost": "代價傷害5點",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "進行精神迴避時使用。 若此次迴避成功，攻擊側受到2D6+【理智】傷害。 若迴避失敗，額外受到1D6傷害。"
+          },
+          {
+            "name": "解咒",
+            "isDividepoint": false,
+            "trigger": "通用/準備階段",
+            "cost": "代價傷害7點",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "進行一次目標值為7的2D6+【理智】判定。 成功則解除目標1個不良狀態。 支付代價時，每多支付3點可以追加解除1個不良狀態。"
+          }
+        ]
+      },
+      {
+        "sectionId": "description_skill2",
+        "sectionName": "額外特技",
+        "isExtra": true,
+        "skillCount": 9,
+        "skills": [
+          {
+            "name": "陣地作成",
+            "isDividepoint": true,
+            "trigger": "通用",
+            "cost": "代價傷害20點",
+            "tpReward": "0",
+            "restriction": "魔術師等級2以上",
+            "effect": "在戰鬥外選擇一個地點，將你所持有的一個特技做為對象，將該對象「設置」。 被設置的特技、可以在設置的地點不支付代價而使用。 可以設置的特技個數上限、跟你的魔術師等級相同。 陣地有被發現而遭破壞可能，耐久度為你的《2D6》+［魔術師等級］+［精神/3］。 執行破壞陣地行動時，一律為(2D6+玩家精神/3)。"
+          },
+          {
+            "name": "多重屬性",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "創角時獲得、魔術師等級2以上",
+            "effect": "你額外得到2點屬性點，可額外獲得0~2種屬性。"
+          },
+          {
+            "name": "召喚專精",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "代價傷害20",
+            "tpReward": "0",
+            "restriction": "魔術師等級5以上",
+            "effect": "你能召喚一體「異界之獸」。 召喚異界之獸時，你的行動點數增加1D6，並從以下效果選擇一個發動： 1.指定一對象，造成的傷害增加2D6。 2.指定一對象防禦增加［你的魔術師等級］點。 3.指定一對象，恢復他3D6HP。 附加的效果將會在回合結束，或是異界之獸死亡時消失，你可以支付20點代價傷害維持或再次啟動效果。"
+          },
+          {
+            "name": "治癒魔術",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "代價傷害15",
+            "tpReward": "0",
+            "restriction": "魔術刻印、魔術師等級3以上",
+            "effect": "指定對象一人，使其恢復《［你的魔術師等級-2］D6》HP。每額外支付15點TP，增加1D6+［你的魔術師等級-3］點恢復量。"
+          },
+          {
+            "name": "完全解析",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "代價傷害25",
+            "tpReward": "0",
+            "restriction": "思考的並列演算",
+            "effect": "你這回合的戰鬥判定+《2》，傷害+《4》"
+          },
+          {
+            "name": "高效率迴路運轉",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "魔術刻印、魔術師等級3以上",
+            "effect": "你可以常時輕減代價傷害5（最低為1）。 魔術師等級6以上時，改為輕減10（最低為1）。 魔術師等級9以上時，改為輕減20（最低為1）。 如有任意支付代價的特技，計算時以輕減前數值適用。"
+          },
+          {
+            "name": "高速詠唱",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "要素：詠唱",
+            "effect": "你所有的「要素：詠唱」，每小節待機延遲成為1。"
+          },
+          {
+            "name": "肉體改造",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "代價傷害20",
+            "tpReward": "0",
+            "restriction": "強化",
+            "effect": "一天一次，你取得5點數，可自由分配在你的能力基本值上。 使用時進行達成值為(7+過去已使用次數)的理智判定。 失敗時你仍可得到點數，但你受到2D6點傷害。 改造疊加上限為你的［魔術師等級/3］次。"
+          },
+          {
+            "name": "屬性強化",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "代價傷害12",
+            "tpReward": "0",
+            "restriction": "任一屬性3點以上",
+            "effect": "「要素：傷害」傷害追加你的任一屬性的屬性值，並成為該屬性傷害。 「防禦結界」效果增加兩回合。 「防禦魔術」對任一屬性傷害-4，你持有該屬性則-8。 代價傷害追加8點傷害時，持有的任一屬性值+2。"
+          }
+        ]
+      },
+      {
+        "sectionId": "description_skill3",
+        "sectionName": "要素構成",
+        "isExtra": false,
+        "skillCount": 14,
+        "skills": [
+          {
+            "name": "要素：傷害",
+            "isDividepoint": false,
+            "trigger": "特殊",
+            "cost": "代價傷害1~［你的魔術師等級］",
+            "tpReward": "0",
+            "restriction": "魔術構成",
+            "effect": "對目標造成《2D6》+ [本次支付代價+2]點傷害。 此要素須搭配攻擊類型或進攻類型。"
+          },
+          {
+            "name": "要素：準備",
+            "isDividepoint": false,
+            "trigger": "特殊",
+            "cost": "代價傷害5",
+            "tpReward": "0",
+            "restriction": "魔術構成",
+            "effect": "此「魔術構成」的分類成為「準備階段」。"
+          },
+          {
+            "name": "要素：攻擊類型",
+            "isDividepoint": false,
+            "trigger": "攻擊類型/特殊",
+            "cost": "代價傷害2",
+            "tpReward": "0",
+            "restriction": "魔術構成",
+            "effect": "選擇近戰、射擊、精神其中一項，選擇後將無法更改。此「魔術構成」的分類成為「攻擊類型/(你選擇的分類)」。 選擇近戰時，此要素的代價傷害減少1點。"
+          },
+          {
+            "name": "要素：進攻",
+            "isDividepoint": false,
+            "trigger": "特殊",
+            "cost": "代價傷害2",
+            "tpReward": "0",
+            "restriction": "魔術構成",
+            "effect": "選擇近戰、射擊、精神其中一項，選擇後將無法更改。此「魔術構成」的分類成為「進攻/(你選擇的分類)」。 選擇近戰時，此要素的代價傷害減少1點。"
+          },
+          {
+            "name": "要素：詠唱",
+            "isDividepoint": false,
+            "trigger": "特殊",
+            "cost": "依工程區分，每小節待機延遲4、代價傷害5",
+            "tpReward": "0",
+            "restriction": "魔術構成",
+            "effect": "此「魔術構成」需要詠唱才能發動。 每小節詠唱使同一「魔術構成」《》內的數字追加1D6。 詠唱節數不能超過你的［魔術師等級］，因詠唱進入反擊階段時，未詠唱完的小節將不計入計算。"
+          },
+          {
+            "name": "要素：連續發動",
+            "isDividepoint": false,
+            "trigger": "特殊",
+            "cost": "代價傷害2",
+            "tpReward": "0",
+            "restriction": "魔術構成",
+            "effect": "此「魔術構成」增加以下效果： 此技能使用後，你減少7點行動點，並且不會進入已行動狀態。"
+          },
+          {
+            "name": "要素：區域",
+            "isDividepoint": false,
+            "trigger": "特殊",
+            "cost": "代價傷害10",
+            "tpReward": "0",
+            "restriction": "魔術構成",
+            "effect": "此「魔術構成」的指定目標從單一角色改為一個區域內所有角色。 每多支付10點代價傷害，可多指定一個區域。"
+          },
+          {
+            "name": "要素：防禦",
+            "isDividepoint": false,
+            "trigger": "特殊",
+            "cost": "代價傷害1~［你的魔術師等級］",
+            "tpReward": "0",
+            "restriction": "魔術構成",
+            "effect": "減少目標本回合受到的傷害《2D6》+[本次支付代價+2]點。 此要素須搭配其他輔助要素。"
+          },
+          {
+            "name": "要素：增益",
+            "isDividepoint": false,
+            "trigger": "特殊",
+            "cost": "代價傷害2",
+            "tpReward": "0",
+            "restriction": "魔術構成",
+            "effect": "增加目標本回合一項戰鬥能力值《1D6》點。 此要素須搭配其他輔助要素。"
+          },
+          {
+            "name": "要素：持續效果",
+            "isDividepoint": false,
+            "trigger": "特殊",
+            "cost": "代價傷害2",
+            "tpReward": "0",
+            "restriction": "魔術構成",
+            "effect": "使此「魔術構成」內帶有「本回合」的效果，效力延長一回合。"
+          },
+          {
+            "name": "要素：複數目標",
+            "isDividepoint": false,
+            "trigger": "特殊",
+            "cost": "代價傷害5",
+            "tpReward": "0",
+            "restriction": "魔術構成",
+            "effect": "使此「魔術構成」可以指定複數目標。 每多支付3點代價傷害，可多指定一個。"
+          },
+          {
+            "name": "要素：減益",
+            "isDividepoint": false,
+            "trigger": "特殊",
+            "cost": "代價傷害2",
+            "tpReward": "0",
+            "restriction": "魔術構成",
+            "effect": "減少目標本回合一項戰鬥能力值《1D6》點。 此「魔術構成」判定從以下方式擇一，選擇後不能更改： 【攻擊】造成實際傷害後發揮作用。 【精神】精神對決成功後發揮作用。"
+          },
+          {
+            "name": "要素：異常狀態",
+            "isDividepoint": true,
+            "trigger": "特殊",
+            "cost": "代價傷害3",
+            "tpReward": "0",
+            "restriction": "魔術構成",
+            "effect": "此「魔術構成」增加以下效果擇一，選擇後不能更改： 【痲痹】：【行動值】會變成1，而且不能進行移動宣言。 【鎖定】：當你受到來自鎖定者的攻擊時，鎖定者的命中判定+3，會心-1。 【燃燒】：結束階段時受到2D6+［你的魔術師等級〕點火屬性傷害。 【束縛】：所有動作和被動的達成值-3。 【恍惚】：無法使用分類：常時以外的特技。可透過消費15點TP解除。 【中毒】：結束階段時承受10%的最大HP百分比傷害。中毒層數可以疊加，解除中毒狀態則只需要一次就可完全解毒。 此「魔術構成」判定從以下方式擇一，選擇後不能更改： 【攻擊】造成實際傷害後發揮作用。 【精神】精神對決成功後發揮作用。"
+          },
+          {
+            "name": "要素：治療",
+            "isDividepoint": false,
+            "trigger": "特殊",
+            "cost": "代價傷害1~［你的魔術師等級］",
+            "tpReward": "0",
+            "restriction": "魔術構成",
+            "effect": "增加目標的HP《2D6》+ [本次支付代價*3]點。"
+          }
+        ]
+      }
+    ]
+  },
+  "executor": {
+    "classId": "executor",
+    "acquisitionRules": "取得特技 ▲ 初期取得： 選擇兩個自己喜歡的特技。 升級： 等級上升之時、選取一個喜歡的特技。5等、10等時，可以額外再取得一個特技。",
+    "sections": [
+      {
+        "sectionId": "description_skill1",
+        "sectionName": "一般特技",
+        "isExtra": false,
+        "skillCount": 20,
+        "skills": [
+          {
+            "name": "黑鍵持有",
+            "isDividepoint": true,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "劇本開始時，你得到［你的代行者等級X2］數量黑鍵。黑鍵具有1D6+4傷害。並為概念武裝。但是無論拿來揮砍或是投擲，皆會因本體精煉度低而損毀。受到黑鍵命中的對象，獲得不良狀態【復原詛咒無效化】。 【復原詛咒無效化】： 你無法因為自己的技能 獲得HP回復，此效果持續到下個回合終了。"
+          },
+          {
+            "name": "異端審判人",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "通過聖堂教會層層磨練，以將體術昇華至頂點。你的近戰與射擊常時+1。生命力提升［你的總等級X2］，集中力提升［你的總等級X2］。防禦點+1。"
+          },
+          {
+            "name": "秘跡封印",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "代價傷害2",
+            "tpReward": "2",
+            "restriction": "無",
+            "effect": "對象身上所持：秘跡獲得不良狀態【封印】。 發動此特技必須接觸到目標物品，或是與持有者進行近戰命中對抗。 【封印】：秘跡失去其效果，此效果持續到下個回合／場景結束終了。"
+          },
+          {
+            "name": "聖痕持有",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你獲得以下常時： 從【生命力】跟【集中力】選擇一項減少（你的代行者級別），從【近戰】跟【射擊】選擇一項增加（你的代行者級別）。"
+          },
+          {
+            "name": "異端消抹偏執：竭誠信仰",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "取得此特技後，不得取得其他〈異端消抹偏執〉特技。 對非人、魔術師傷害追加2D6點；其他傷害減1D6點。"
+          },
+          {
+            "name": "異端消抹偏執：不信者",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "取得此特技後，不得取得其他〈異端消抹偏執〉特技。 傷害常時增加1D6點。"
+          },
+          {
+            "name": "所持：秘跡",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你可以持有一秘跡，此特技可重複取得。"
+          },
+          {
+            "name": "影縫",
+            "isDividepoint": false,
+            "trigger": "進攻／共通",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "實傷後效果，對象獲得不良狀態【痲痹】、【鎖定】。 【痲痹】：【行動值】會變成1，而且不能進行移動宣言。 【鎖定】：當你受到來自鎖定者的攻擊時，鎖定者的命中判定+3，會心-1。"
+          },
+          {
+            "name": "強化式典",
+            "isDividepoint": false,
+            "trigger": "進攻／共通",
+            "cost": "代機延遲2",
+            "tpReward": "2",
+            "restriction": "無",
+            "effect": "你的傷害追加《1D6+1》點，若對象為死徒則傷害追加《2D6+1》點。 宣言反擊時此特技失去效果。"
+          },
+          {
+            "name": "多重投擲",
+            "isDividepoint": false,
+            "trigger": "進攻類型／射擊",
+            "cost": "代機延遲3",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你可以一次使用【你的總等級】黑鍵進行攻擊，此數值不得大於6。攻擊對象可為不同人。宣言反擊時此特技失去效果。"
+          },
+          {
+            "name": "固定式典",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "一把黑鍵代價傷害2",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "使你的黑鍵損毀率變為二分之一。這回合使用黑鍵時，命中+《1》，傷害+3。"
+          },
+          {
+            "name": "黑鍵製作",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "戰鬥外時可使用，每一天可得到［你的代行者等級／2］數量的黑鍵，四捨五入去小數點。"
+          },
+          {
+            "name": "火葬式典",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "一把黑鍵代價傷害5",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你的黑鍵增加以下效果「實際傷害後效果，對象獲得不良狀態命中後對象得到不良狀態【燃燒】」。 【燃燒】：每到回合結束時，受到《【你的代行者等級】*6》的最大生命值百分比傷害。」"
+          },
+          {
+            "name": "土葬式典",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "一把黑鍵代價傷害5",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你的黑鍵增加以下效果「實際傷害後效果，對象獲得不良狀態【石化】」 【石化】：你的防禦值上升10，除了解除不良狀態，無法進行任何動作。"
+          },
+          {
+            "name": "風葬式典",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "一把黑鍵代價傷害5",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你的射擊命中額外增加【你的代行者等級】，會心-1，黑鍵增加以下效果「使用黑鍵的特技，其待機延遲減少【你的代行者等級】點。」"
+          },
+          {
+            "name": "水葬式典",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "一把黑鍵代價傷害5",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你的黑鍵增加以下效果「實際傷害後效果，對象所有下回合結束之不良狀態延長［你的代行者等級／2］回合，四捨五入。且所有不良狀態解除判定的達成值變為10。」"
+          },
+          {
+            "name": "鳥葬式典",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "一把黑鍵代價傷害2，待機延遲2",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你的黑鍵增加以下效果「實際傷害效果後，對象下回行動點-6」。"
+          },
+          {
+            "name": "神威之鎖",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "代價傷害15",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "指定一對象，與其進行【精神】對決。對象失敗的話，此回合行動力-《10》，非人者的話-《15》。"
+          },
+          {
+            "name": "洗禮詠唱",
+            "isDividepoint": false,
+            "trigger": "進攻／射擊",
+            "cost": "待機延遲12",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "指定一對象，給予不良狀態【洗禮】。 【洗禮】：對象行動力-5，非人者的話-10。若為非人，每回合另外減少5TP。 背反律「死之轉生」、特技「起源覺醒：靜止」、「於世所不容者」失效。"
+          },
+          {
+            "name": "真實確在的恩膏",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "從基本能力值體力、知覺、理智、意志選擇一項減少［你的代行者等級］，選擇任意兩個魔術師以外級別之特技或選擇一個風格與感情。"
+          }
+        ]
+      },
+      {
+        "sectionId": "description_skill2",
+        "sectionName": "額外特技",
+        "isExtra": true,
+        "skillCount": 17,
+        "skills": [
+          {
+            "name": "式典魔術",
+            "isDividepoint": true,
+            "trigger": "準備階段",
+            "cost": "一把黑鍵代價傷害7",
+            "tpReward": "0",
+            "restriction": "代行者等級5以上、三種式典特技以上",
+            "effect": "你可以同時賦予黑鍵火葬、土葬、風葬的效果。"
+          },
+          {
+            "name": "強制洗禮",
+            "isDividepoint": false,
+            "trigger": "進攻／共通",
+            "cost": "代價傷害10",
+            "tpReward": "0",
+            "restriction": "代行者等級5以上、神威之鎖、洗禮詠唱、異端審判人",
+            "effect": "實傷後效果，對象獲得不良狀態【洗禮】。如果為非人者，追加受到2D6傷害。 【洗禮】：對象行動力-5，非人者的話-10。若為非人，每回合另外減少5TP。 背反律「死之轉生」、特技「起源覺醒：靜止」、「於世所不容者」失效。"
+          },
+          {
+            "name": "埋葬機關候補",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "代行者等級5以上、異端審判人",
+            "effect": "你的近戰與射擊常時+2，生命力提升【你的總等級X2】，集中力提升【你的總等級X2】。"
+          },
+          {
+            "name": "所持：聖典",
+            "isDividepoint": true,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "代行者等級5以上、異端審判人",
+            "effect": "此技能可重複取得。 從下列擇一【聖典】持有： ■聖葬砲典 分類：攻撃類型／射撃 代價：待機延遲10 效果：當你具有「聖典制御刻印」時可使用。 指定對象1人，給予【你的代行者等級】D6的傷害，本次傷害為概念武裝。 宣言反擊時，傷害須扣減未待機完畢之行動點。 ■第七聖典 分類：攻撃類型／共通 代價：待價傷害12 效果：當你具有「聖典制御刻印」時可使用。 指定對象1人，給予4D6+【你的代行者等級】的傷害，本次傷害為概念武裝。 ■春綻聖典 分類：通用 代價：- 效果：當你具有「聖典制御刻印」時可使用。 劇本開始時自動補充【你的代行者等級*2】頁數。 攻擊時每使用一頁，提升你的命中1點或是傷害1點。 ■正式外典迦瑪列 分類：通用 代價：代價傷害20 效果：當你具有「聖典制御刻印」時可使用。 指定對象一人，此次攻擊的實際傷害為兩倍。 對象若為吸血種，實際傷害為四倍。 ■聖典特萊汀 分類：通用 代價：- 效果：當你具有「聖典制御刻印」時可使用。 劇本開始時自動補充【你的代行者等級*2】頁數。 防禦時每使用一頁，提升你的防禦1點。"
+          },
+          {
+            "name": "鐵甲作用",
+            "isDividepoint": false,
+            "trigger": "進攻／共通",
+            "cost": "待機延遲10",
+            "tpReward": "0",
+            "restriction": "埋葬機關候補",
+            "effect": "此技能可與式典技能併用。你的傷害追加【你的代行者等級】點。"
+          },
+          {
+            "name": "聖典制御刻印",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "所持：聖典",
+            "effect": "你的防禦值上升4，當你丟出大失敗時，可以重新擲骰。"
+          },
+          {
+            "name": "戰鬥反應",
+            "isDividepoint": false,
+            "trigger": "中斷",
+            "cost": "代價傷害15",
+            "tpReward": "0",
+            "restriction": "代行者LV2、異端審判人",
+            "effect": "在聖堂教會的層層磨練下，身經無數的戰場並習慣之，無論怎樣突發狀況都可以精準判斷、下達命令，甚至是依槍聲聽出敵方武器種類。 在你戰鬥判定之後使用，達成值+【你的總等級】。"
+          },
+          {
+            "name": "黑鍵抵禦",
+            "isDividepoint": false,
+            "trigger": "中斷",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "戰鬥反應",
+            "effect": "在自身的迴避判定後使用，你可以使用【你的總等級】把黑鍵進行抵禦，此數值不可超過6。 一把黑鍵可以抵擋攻擊類型／射擊結算前的1D6+4點傷害。"
+          },
+          {
+            "name": "第八秘跡會所屬",
+            "isDividepoint": true,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "代行者等級3以上、異端審判人或異端消抹偏執、所持：秘跡、秘跡破壞或秘跡封印",
+            "effect": "你可以再持有［你的代行者等級／2］個秘跡，四捨五入。 你可以得知任何處於【封印】狀態的裝備品或消耗品的位置。 一個劇本可以使用［你的代行者等級］次，接觸該物品或與該物持有者近戰命中對抗成功後，回收處於【封印】狀態的該裝備品或消耗品。"
+          },
+          {
+            "name": "釘刑",
+            "isDividepoint": false,
+            "trigger": "進攻／射擊",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "多重投擲、戰鬥反應",
+            "effect": "你可以一次使用【你的總等級】把投擲物進行攻擊，此數值不得大於6，此特技只會對對方造成一次傷害，一次所造成的傷害為所有投擲物傷害之總和。 宣言反擊時此特技失去效果。"
+          },
+          {
+            "name": "快速執行",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "代行者等級7以上、式典魔術、戰鬥反應",
+            "effect": "你的黑鍵上所有實際傷害後效果的敘述轉變為命中後效果。"
+          },
+          {
+            "name": "黑鍵製作‧進階",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "代行者等級7以上",
+            "effect": "每天可得到的黑鍵數量變為［你的代行者等級］、準備階段與結束階段皆能獲得一把黑鍵。"
+          },
+          {
+            "name": "不存在的恩典",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "強制洗禮或第八秘跡會所屬或埋藏機關候補",
+            "effect": "在符合取得限制下，取得兩個魔術師特技。"
+          },
+          {
+            "name": "不潔之物",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "代價傷害3",
+            "tpReward": "0",
+            "restriction": "異端消抹偏執：竭誠信仰、黑鍵持有",
+            "effect": "一天可以使用［你的代行者等級］次，消耗一把黑鍵你可以指定破壞刻有盧文字的物件、人偶、使魔或異界之獸。"
+          },
+          {
+            "name": "秘跡執行‧上下同位",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "代價傷害30",
+            "tpReward": "0",
+            "restriction": "代行者等級7以上、第八秘跡會所屬",
+            "effect": "破壞一個你所持有分類為裝備品的秘跡，你其中一個關於秘跡類特技中需要接觸的敘述變為直接宣告即可，且不須進行判定，此效果僅止於該回。 此技能在整個劇本中只得使用一次，若登錄為無盡破壞可再繼續使用。"
+          },
+          {
+            "name": "秘跡破壞",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "代價傷害5",
+            "tpReward": "0",
+            "restriction": "異端消抹偏執：不信者、埋藏機關候補",
+            "effect": "一個劇本可以使用［你的代行者等級］次，破壞一個所持：秘跡分類的裝備品或消耗品。 發動此特技必須接觸到目標物品，或是與持有者進行近戰命中對抗。"
+          },
+          {
+            "name": "異物認定",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "異端消抹偏執、秘跡破壞或秘跡封印",
+            "effect": "秘跡破壞、秘跡封印中關於所持：秘跡的敘述皆變為所持：任意。"
+          }
+        ]
+      }
+    ]
+  },
+  "swordsman": {
+    "classId": "swordsman",
+    "acquisitionRules": "取得特技 ▲ 初期取得： 得到「段位」、「流派」。 升級： 等級上升之時、選取一個喜歡的特技。每逢5等、10等時，可以額外再取得一個特技。",
+    "sections": [
+      {
+        "sectionId": "description_skill1",
+        "sectionName": "一般特技",
+        "isExtra": false,
+        "skillCount": 29,
+        "skills": [
+          {
+            "name": "段位",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你身為劍士的段位資格，會隨著同一流派相關技能數而改變。 一到二：切紙 三到四：目錄 五到六：印可 七到八：大目錄 九以上：免許皆傳。 此技能本身不算在相關技能數。"
+          },
+          {
+            "name": "流派",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "2",
+            "restriction": "無",
+            "effect": "從以下流派中擇一入門，此特技可重複取得。此技能計算在相關技能數。 二天一流： 你獲得技能■二天一流。 一刀流： 你獲得技能■一刀流。 夢想流： 你獲得技能■夢想流。"
+          },
+          {
+            "name": "二天一流",
+            "isDividepoint": false,
+            "trigger": "攻擊類型／近戰",
+            "cost": "-",
+            "tpReward": "2",
+            "restriction": "無",
+            "effect": "使用大小太刀的攻擊。指定一對象造成2D6傷害，並可宣言任一架式。〈上段〉本次傷害追加1D6。〈下段〉本次命中達成值追加2。"
+          },
+          {
+            "name": "一刀流",
+            "isDividepoint": false,
+            "trigger": "攻擊類型／近戰",
+            "cost": "-",
+            "tpReward": "2",
+            "restriction": "無",
+            "effect": "使用中、或是小太刀進行攻擊。指定一對象造成2D6+4傷害，並可宣言任一架式。〈背車刀〉本次命中追加1。〈切落〉你切換到待機狀態，並且可反擊任何攻擊，若是反擊時的命中值高於對手命中，跳過雙方傷害階段直接結束，此架式進行完後你不會進入已行動狀態。"
+          },
+          {
+            "name": "夢想流",
+            "isDividepoint": false,
+            "trigger": "攻擊類型／近戰",
+            "cost": "-",
+            "tpReward": "2",
+            "restriction": "無",
+            "effect": "使用居合刀進行的攻擊。指定一對象造成《1D6》傷害。並可宣言任一架式。〈跪座〉待機延遲4，本次攻擊傷害追加2D6，你與對方皆無法宣言反擊。〈站姿〉本次命中值追加3。"
+          },
+          {
+            "name": "圓極",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "代價傷害5",
+            "tpReward": "0",
+            "restriction": "段位‧切紙、流派──二天一流。",
+            "effect": "二刀流的起手架式。回合終了為止你的命中達成值+2，防禦值+2。"
+          },
+          {
+            "name": "左右反打",
+            "isDividepoint": false,
+            "trigger": "防禦",
+            "cost": "-",
+            "tpReward": "2",
+            "restriction": "段位‧切紙、流派──二天一流",
+            "effect": "你可針對朝你發出的攻擊進行以下宣言：〈左反打〉對手此次攻擊的傷害與命中+2，在你被攻擊或是迴避之後，你可以無視行動狀態，以對手為對象進行攻擊，此次攻擊命中+4。〈右反打〉對手此次攻擊的傷害與命中+4，在你被攻擊或是迴避之後，你可以無視行動狀態，以對手為對象進行攻擊，此次攻擊傷害+2D6。"
+          },
+          {
+            "name": "陰陽雙舞",
+            "isDividepoint": false,
+            "trigger": "進攻／近戰",
+            "cost": "-",
+            "tpReward": "2",
+            "restriction": "段位‧目錄、流派──二天一流",
+            "effect": "二天一流的招式變化，你可以進行以下宣言：〈陽舞〉以大太刀為主，本次傷害追加1D6。〈陰舞〉以小太刀為主，本次命中達成值+3。"
+          },
+          {
+            "name": "紅葉疊舞",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "代價傷害3",
+            "tpReward": "2",
+            "restriction": "段位‧目錄、流派──二天一流",
+            "effect": "對手迴避攻擊之後，你可以命中達成值-6再次進行攻擊。此技能一回合只能使用一次。"
+          },
+          {
+            "name": "組太刀",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "代價傷害5",
+            "tpReward": "2",
+            "restriction": "段位‧印可、流派──二天一流",
+            "effect": "二天一流的起手架式變化。回合終了為止你可以對朝你而來攻擊進行兩次迴避。"
+          },
+          {
+            "name": "二刀八相",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "段位‧印可、流派──二天一流",
+            "effect": "宮本武藏創造的架式。你的二天一流敘述文追加「本次攻擊你額外進行兩回命中擲骰，每成功一次傷害追加1D6」。"
+          },
+          {
+            "name": "轉變落打",
+            "isDividepoint": false,
+            "trigger": "防禦",
+            "cost": "代價傷害15",
+            "tpReward": "2",
+            "restriction": "段位‧大目錄、流派──二天一流",
+            "effect": "當你受到來自同區域的傷害後，你可以無視行動狀態，以對手為對象進行攻擊，第一次承受這技能造成反擊的對手無法迴避，第二次以後須受到迴避達成值-4的懲罰。"
+          },
+          {
+            "name": "觀見",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "段位‧大目錄、流派──二天一流",
+            "effect": "你手上有大小太刀時，防禦點+2。"
+          },
+          {
+            "name": "本覺",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "代價傷害3",
+            "tpReward": "0",
+            "restriction": "段位‧切紙、流派──一刀流",
+            "effect": "一刀流的起手架式。回合終了為止你的防禦值+1，使用〈切落〉時，命中值+1。"
+          },
+          {
+            "name": "八相陰劍",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "代價傷害8+N",
+            "tpReward": "0",
+            "restriction": "段位‧切紙、流派──一刀流",
+            "effect": "一刀流的起手架式變化。回合終了為止你的命中+2，傷害增加1D6，攻擊無視Ｎ-5以下防禦值。"
+          },
+          {
+            "name": "圓流",
+            "isDividepoint": false,
+            "trigger": "防禦",
+            "cost": "-",
+            "tpReward": "2",
+            "restriction": "段位‧目錄、流派──一刀流",
+            "effect": "以像是畫圓般的動作承受對手的攻擊，防禦值+2。"
+          },
+          {
+            "name": "飛鳥",
+            "isDividepoint": false,
+            "trigger": "進攻／近戰",
+            "cost": "代價傷害2",
+            "tpReward": "0",
+            "restriction": "段位‧目錄、流派──一刀流",
+            "effect": "跳躍切砍的劍技，傷害追加1D6，另外，攻擊後你可以無視阻礙，移動到其他區域。"
+          },
+          {
+            "name": "霞青眼",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "段位‧印可、流派──一刀流",
+            "effect": "你的架式〈切落〉敘述文新增「本次攻擊你的命中達成值+2」。"
+          },
+          {
+            "name": "真劍",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "段位‧印可、流派──一刀流",
+            "effect": "你手上拿的是真刀時，傷害額外增加4。"
+          },
+          {
+            "name": "松風",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "代價傷害2",
+            "tpReward": "0",
+            "restriction": "段位‧大目錄、流派──一刀流、霞青眼",
+            "effect": "你的架式〈切落〉敘述文新增「本次攻擊成功後，你的行動點+2」。"
+          },
+          {
+            "name": "葉切",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "代價傷害10",
+            "tpReward": "0",
+            "restriction": "段位‧大目錄、流派──一刀流、飛鳥",
+            "effect": "你的技能〈飛鳥〉敘述文新增「本次攻擊你的命中達成值+3，實際傷害+3」。"
+          },
+          {
+            "name": "納刀",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "-",
+            "tpReward": "2",
+            "restriction": "段位‧切紙、流派──夢想流",
+            "effect": "夢想流的起手架式，你得把刀子收起來才可以拔。回合終了為止你的流派──夢想流技能命中會心-1。"
+          },
+          {
+            "name": "夢想流居合一本目",
+            "isDividepoint": true,
+            "trigger": "進攻／近戰",
+            "cost": "代價傷害5點",
+            "tpReward": "0",
+            "restriction": "段位‧切紙、流派──夢想流",
+            "effect": "夢想流拔刀術，以電光石火速度拔刀斬向敵人，只能搭配夢想流技能使用。本次攻擊傷害增加［你減去對手的行動點］。傷害限制： 〈切紙〉最大上限傷害4 〈目錄〉技能名稱改為「始」1／2拍子，最大上限傷害8 〈印可〉技能名稱改為「始」1／4拍子，最大上限傷害12 〈大目錄〉技能名稱改為「始」1／16拍子，最大上限傷害20 〈免許皆傳〉技能名稱改為「始」1／32拍子，無最大上限傷害。"
+          },
+          {
+            "name": "夢想流居合二本目",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "段位‧目錄、流派──夢想流",
+            "effect": "你手上的武器不是刀，而是其他諸如竹刀、鐵管之類的非利刃物品時，可以無視傷害懲罰使用夢想流。使用後該物品損毀。"
+          },
+          {
+            "name": "夢想流居合三本目",
+            "isDividepoint": false,
+            "trigger": "防禦",
+            "cost": "代價傷害5",
+            "tpReward": "0",
+            "restriction": "段位‧目錄、流派──夢想流",
+            "effect": "對手是空手攻擊時才能使用。你的迴避達成值+2，成功迴避的話，你可以無視行動狀態，以2D6傷害的打砍進行一次攻擊，此次攻擊不得附加其他進攻特技。"
+          },
+          {
+            "name": "夢想流居合四本目",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "段位‧印可、流派──夢想流",
+            "effect": "你的夢想流可同時以同區域兩人為對象進行攻擊，位於左邊敵人受到的實際傷害會減半。"
+          },
+          {
+            "name": "夢想流居合五本目",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "-",
+            "tpReward": "2",
+            "restriction": "段位‧印可、流派──夢想流",
+            "effect": "配合夢想流一本目，拔刀時甩出劍鞘進行長度補正的遠距離攻擊。你的本次攻擊成為全區域射程。但是要記住劍鞘甩出去不會自己飛回來。"
+          },
+          {
+            "name": "夢想流居合六本目",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "代價傷害10",
+            "tpReward": "2",
+            "restriction": "段位‧大目錄、流派──夢想流",
+            "effect": "你的技能〈夢想流居合一本目〉敘述文新增「通過一個難易度15的精神判定，你本次的傷害追加此判定數值，失敗的話本次傷害減去此數值。當你段位達到免許皆傳時，可改以額外兩倍支付代價傷害代替判定」。"
+          },
+          {
+            "name": "夢想流居合七本目",
+            "isDividepoint": false,
+            "trigger": "防禦",
+            "cost": "-",
+            "tpReward": "2",
+            "restriction": "段位‧大目錄、流派──夢想流",
+            "effect": "以真刀刀柄強行阻擋對方的攻擊。抵銷一次空手以外的近戰攻擊，使用後武器損毀。"
+          }
+        ]
+      },
+      {
+        "sectionId": "description_skill2",
+        "sectionName": "額外特技",
+        "isExtra": true,
+        "skillCount": 6,
+        "skills": [
+          {
+            "name": "五輪太刀",
+            "isDividepoint": true,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "段位‧免許皆傳、流派──二天一流",
+            "effect": "你手上有大小太刀時，傷害增加2D6，攻擊範圍可包含相鄰區域。並得到以下架式： 〈地太刀〉你可以付出20點行動點使本次攻擊的命中值+［你的劍士等級］。 〈火太刀〉你可以付出20點行動點使本次攻擊的實際傷害成為兩倍。 〈風太刀〉你可以付出20點行動點使本次攻擊射程成為全區域。 〈水太刀〉你可以付出20點行動點進行兩次攻擊。 〈空太刀〉你可以付出20點行動點，反擊即使不以你為對象的技能。空太刀反擊後你不會進入已行動狀態。"
+          },
+          {
+            "name": "奧義‧一吋劍理",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "代價傷害30",
+            "tpReward": "2",
+            "restriction": "段位‧免許皆傳、流派──二天一流",
+            "effect": "指定一名對手，從該對手而來的攻擊到戰鬥結束前你獲得【你劍士等級】的防禦值修正，這效果無法對同樣的對手疊加。可以對不同角色複數使用。"
+          },
+          {
+            "name": "金翅烏王劍",
+            "isDividepoint": false,
+            "trigger": "進攻／近戰",
+            "cost": "代價傷害25",
+            "tpReward": "2",
+            "restriction": "段位‧免許皆傳、流派──一刀流、葉切",
+            "effect": "以飛鳥為底，發展到最終形式的一刀流劍技，此次傷害追加《3》D6+《3》，命中達成值+《3》。另外，攻擊後你可以無視阻礙移動。"
+          },
+          {
+            "name": "奧義‧夢想劍",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "代價傷害50",
+            "tpReward": "2",
+            "restriction": "段位‧免許皆傳、流派──一刀流",
+            "effect": "你的傷害追加《你的劍士等級》D6，攻擊射程成為全區域。獲得此技能後不需支付代價也有常時效果──你不會被［你的劍士等級］以下的角色奇襲成功，即便你在睡覺中遇襲，身體也能自動擺出架式應戰。你在準備階段能夠使用所有的一刀流起手架式效果。"
+          },
+          {
+            "name": "夢想流居合八本目",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "段位‧免許皆傳、流派──夢想流",
+            "effect": "當你行動點在20以上的時候，技能〈夢想流居合一本目「始」〉攻擊射程成為全區域。"
+          },
+          {
+            "name": "奧義‧無拍拔刀",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "-",
+            "tpReward": "2",
+            "restriction": "段位‧免許皆傳、流派──夢想流",
+            "effect": "通過一個難易度17的精神判定與難易度20的行動判定，本次攻擊命中以會心計算，傷害追加《你的劍士等級》。精神判定可以兩倍代價傷害支付，行動判定可以行動點支付。獲得此技能後擁有以下常時效果──你的【行動】、【精神】常時+3。此技能一劇本限用兩回。"
+          }
+        ]
+      }
+    ]
+  },
+  "fighter": {
+    "classId": "fighter",
+    "acquisitionRules": "取得特技 ▲ 初期取得： 得到「武道」，然後再選擇一個自己喜歡的特技。 升級： 等級上升之時、選取一個喜歡的特技。5等、10等時，可以額外再取得一個特技。",
+    "sections": [
+      {
+        "sectionId": "description_skill1",
+        "sectionName": "一般特技",
+        "isExtra": false,
+        "skillCount": 13,
+        "skills": [
+          {
+            "name": "武道",
+            "isDividepoint": true,
+            "trigger": "通用",
+            "cost": "代價傷害5點",
+            "tpReward": "0",
+            "restriction": "-",
+            "effect": "以下三者擇一： 近戰相關判定+2。 近戰傷害+2。 【體力】判定達成值+《2》"
+          },
+          {
+            "name": "蛇咬",
+            "isDividepoint": false,
+            "trigger": "攻擊類型／近戰",
+            "cost": "-",
+            "tpReward": "2",
+            "restriction": "-",
+            "effect": "指定對象一人，給予2D6傷害。 戰鬥中你第一次施放此技能時，命中與傷害+《4》。"
+          },
+          {
+            "name": "滲透勁",
+            "isDividepoint": false,
+            "trigger": "攻撃類型／近戰",
+            "cost": "代價傷害2",
+            "tpReward": "0",
+            "restriction": "-",
+            "effect": "指定對象一人，給予1D6+2傷害，此特技實際傷害為一點五倍（去小數點）。"
+          },
+          {
+            "name": "武心",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "-",
+            "tpReward": "成功時上升2",
+            "restriction": "-",
+            "effect": "通過一個目標值為10的2D6+【武鬥家等級】判定。成功則你本回合判定會心下降《1》，全判定上升1，傷害增加《【你的武鬥家等級】》。"
+          },
+          {
+            "name": "貼打",
+            "isDividepoint": false,
+            "trigger": "進攻/近戰",
+            "cost": "-",
+            "tpReward": "2",
+            "restriction": "-",
+            "effect": "實傷後效果，對手下回合結束前不能離開此區域。"
+          },
+          {
+            "name": "發勁",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "代價傷害2",
+            "tpReward": "0",
+            "restriction": "-",
+            "effect": "通過一個目標值為10的2D6+【武鬥家等級】判定。成功則你本回合傷害增加《1D6》。"
+          },
+          {
+            "name": "破打",
+            "isDividepoint": false,
+            "trigger": "進攻／近戰",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "-",
+            "effect": "實傷後效果，對手的行動力減去《2D6+3》點，對手因為此特技進入行動完成狀態的話，下個回合無法動作。"
+          },
+          {
+            "name": "不屈",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "-",
+            "effect": "你進入行動不能狀態時，在回合結束為止仍可行動。但是在這期間無法回復HP以及不良狀態。"
+          },
+          {
+            "name": "硬氣功",
+            "isDividepoint": false,
+            "trigger": "防禦",
+            "cost": "代價傷害4",
+            "tpReward": "0",
+            "restriction": "-",
+            "effect": "你的迴避達成值成為1，防禦點+《4》。"
+          },
+          {
+            "name": "超反應",
+            "isDividepoint": false,
+            "trigger": "防禦",
+            "cost": "代價傷害5點",
+            "tpReward": "0",
+            "restriction": "-",
+            "effect": "防禦時，無論攻擊側使用什麼你都能使用【近戰】-4進行迴避判定。"
+          },
+          {
+            "name": "精神統一",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "-",
+            "effect": "你每消耗10點TP，就可以恢復《2D6+1》HP。"
+          },
+          {
+            "name": "震腳",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "代價傷害4",
+            "tpReward": "0",
+            "restriction": "-",
+            "effect": "實際傷害後，對方TP減去《3D6》。每當傷害骰出現一個6或5，額外增加1D6+1。"
+          },
+          {
+            "name": "真氣統合",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "-",
+            "tpReward": "獲得真氣時上升2",
+            "restriction": "-",
+            "effect": "你的武鬥家等級必須超過其他級別。 你將現有HP與TP加總後均分。均分後若回復超過原先HP5點，獲得狀態【真氣】。 【真氣】：傷害增加【武鬥家等級】，此回合戰鬥判定增加1D6。狀態持續到你遭受傷害為止。"
+          }
+        ]
+      },
+      {
+        "sectionId": "description_skill2",
+        "sectionName": "額外特技",
+        "isExtra": true,
+        "skillCount": 20,
+        "skills": [
+          {
+            "name": "先手必勝",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "武鬥家等級4以上",
+            "effect": "通過一個目標值為12的2D6+【武鬥家等級】判定。此次攻擊因為對手技能而進入反擊處理時，你可以跳過命中過程，直接擲傷害骰給予對手傷害。 在這之後若對手未進入行動不能狀態，你也受到對手攻擊傷害。"
+          },
+          {
+            "name": "連環掌",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "代價傷害4",
+            "tpReward": "0",
+            "restriction": "武鬥家等級3以上",
+            "effect": "通過一個目標值為12的2D6+【武鬥家等級】判定。成功後蛇咬與滲透勁於實傷階段給予對手《2D6》傷害。"
+          },
+          {
+            "name": "合氣投",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "武鬥家等級4以上",
+            "effect": "你的破打使對象變成行動完成的狀態時，追加《4D6》傷害，並可以使對象強制移動到相鄰區域。"
+          },
+          {
+            "name": "散打",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "貼打",
+            "effect": "通過一個目標值為12的2D6+【武鬥家等級】判定。實傷後效果。對象下一次迴避判定時達成值-《4》。"
+          },
+          {
+            "name": "一擊脫離",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "代價傷害10",
+            "tpReward": "0",
+            "restriction": "武鬥家等級4以上",
+            "effect": "通過一個目標值為12的2D6+【武鬥家等級】判定。此次攻擊因為對手技能而進入反擊處理時，你可以選擇降低《2D6》傷害而迴避對手的反擊。對方的待機狀態並不會因此解除。"
+          },
+          {
+            "name": "武神的呼吸",
+            "isDividepoint": false,
+            "trigger": "參考內文",
+            "cost": "代價傷害30",
+            "tpReward": "0",
+            "restriction": "武鬥家等級5以上、先手必勝",
+            "effect": "這個特技在決定階段使用。你無視行動點順序、行動與否取得主要階段。"
+          },
+          {
+            "name": "真氣爆發‧虎襲",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "真氣統合",
+            "effect": "真氣狀態下使用。 命中後效果，選擇本次攻擊中尚未使用的攻擊類型／近戰技能，視同直接命中，傷害分段計算後加總。 使用後真氣狀態解除。"
+          },
+          {
+            "name": "真氣制御‧天人合一",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "-",
+            "tpReward": "2",
+            "restriction": "真氣統合",
+            "effect": "戰鬥中使用。 回合中輪到你行動時，可將剩餘行動點全數轉為TP。 回合結束前你的被動判定減少1D6，受到攻擊時傷害額外增加2D6-【武鬥家等級】。 結束階段你獲得〈真氣〉。"
+          },
+          {
+            "name": "真氣爆發‧狼影",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "真氣統合",
+            "effect": "真氣狀態下使用。 受到近戰攻擊時，迴避判定+1D6。 迴避成功時，選擇一攻擊類型／近戰攻擊對手，無須擲骰直接命中，對方無法使用技能類型:防禦。 使用後真氣解除。"
+          },
+          {
+            "name": "真氣制御‧浮生",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "真氣統合、武鬥家等級4以上",
+            "effect": "真氣狀態下使用，一劇本2次。 當你受到攻擊時，可將一半所受到的傷害由TP支付，並且保持〈真氣〉。"
+          },
+          {
+            "name": "超凡",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "〈真氣〉系列技能4個或武神的呼吸",
+            "effect": "一劇本1次，若達成所有取得限制，使用次數+1。 下列效果三擇一： ●無盡破壞或是一個特技的代價變成0。 ●限制次數的能力回數+1。 ●此回合判定不會遭受其他人的技能或背反律所影響。"
+          },
+          {
+            "name": "自然之體",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "創角時限定獲得、HP上限-10",
+            "effect": "你的所有屬性點+3，回合結束階段回復1D6TP。"
+          },
+          {
+            "name": "氣入",
+            "isDividepoint": false,
+            "trigger": "攻擊類型／近戰",
+            "cost": "代價傷害2",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "指定對象一人，給予其《1D6+[你的一屬性值]》傷害。若該屬性值高於5點，實傷階段額外造成[你的一屬性值]。"
+          },
+          {
+            "name": "縫之牢",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "代價傷害7",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "實傷後效果，對方下次逃跑判定達成值-《2》，命中後對象獲得不良狀態【鎖定】。 【鎖定】：當你受到來自鎖定者的攻擊時，鎖定者的命中判定+3，會心-1。"
+          },
+          {
+            "name": "伏龍滅",
+            "isDividepoint": false,
+            "trigger": "進攻／近戰",
+            "cost": "代價傷害6",
+            "tpReward": "2",
+            "restriction": "無",
+            "effect": "攻擊範圍增加至鄰近區域，傷害增加《3》。搭配〈氣入〉合算為單一技能，且代價傷害改為4。"
+          },
+          {
+            "name": "三絕掌",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "代價傷害30",
+            "tpReward": "2",
+            "restriction": "武鬥家任意三個攻擊類型／近戰、武鬥家等級6以上",
+            "effect": "攻擊類型／近戰技能命中後，可對同一目標選擇一個你本回尚未使用過的攻擊類型／近戰技能進行攻擊，若命中還能再次選擇一個本回合尚未使用過的攻擊類型／近戰技能進行一次攻擊。 實際傷害分開計算。"
+          },
+          {
+            "name": "悟天霞",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "自然之體、武鬥家等級3以上",
+            "effect": "HP和TP增加（武鬥家等級*2），精神判定常時+3。失去所有的防禦點，換成等量的屬性技能點數，並可隨意分配到任意屬性上。"
+          },
+          {
+            "name": "八極拳",
+            "isDividepoint": true,
+            "trigger": "攻擊類型／近戰",
+            "cost": "代價傷害8",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "指定對象一人，造成1D6+【雙方防禦點差】的傷害。 武鬥家等級四時，此技能效果改為： 指定對象一人，造成2D6+【對手防禦點】的傷害。 武鬥家等級六時，此技能效果改為： 指定對象一人，造成3D6+【雙方防禦總合】的傷害。 武鬥家等級十時，此技能效果改為： 指定對象一人，造成4D6+【雙方防禦總合】的傷害，此技能實際傷害為兩倍。"
+          },
+          {
+            "name": "七脈淨氣",
+            "isDividepoint": false,
+            "trigger": "進攻／近戰",
+            "cost": "代價傷害30",
+            "tpReward": "0",
+            "restriction": "武鬥家等級8以上",
+            "effect": "此次傷害增加《4》D6+2的傷害，命中增加[你的一屬性值]。 額外支付10點代價傷害，本次攻擊增加攻擊範圍內一目標。"
+          },
+          {
+            "name": "武練",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "代價傷害5",
+            "tpReward": "0",
+            "restriction": "初始級別皆為武鬥家",
+            "effect": "一場戰鬥兩次。 命中或迴避時可骰兩次判定，擇較高數為達成值，但無法會心。"
+          }
+        ]
+      }
+    ]
+  },
+  "hunter": {
+    "classId": "hunter",
+    "acquisitionRules": "取得特技 ▲ 初期取得： 初期取得：任兩個喜歡的特技； 特殊：三級建立角色時初期級別是狩人等級三的話，〈槍手本能〉或〈戰場掌握〉額外給予一級。 升級： 等級上升時，選擇一個喜歡的特技，等級五和十時再選一個； 狩人等級六時若只持〈槍手本能〉或〈戰場掌握〉任一，那特技等級+1",
+    "sections": [
+      {
+        "sectionId": "description_skill1",
+        "sectionName": "一般特技-弓系",
+        "isExtra": false,
+        "skillCount": 11,
+        "skills": [
+          {
+            "name": "弓",
+            "isDividepoint": false,
+            "trigger": "攻擊類型／射擊",
+            "cost": "-",
+            "tpReward": "2+［延後數*2］",
+            "restriction": "-",
+            "effect": "造成《2D6-2》點傷害。 宣言讓自己延後一個行動順位時，［蓄力］+1。宣言意外之擊時只能從〈射擊技巧．迅速〉獲得蓄力。 每層［蓄力］命中+1、傷害+3，［蓄力］上限為戰場上的人數-1（自身）。"
+          },
+          {
+            "name": "弩弓",
+            "isDividepoint": false,
+            "trigger": "攻擊類型／射擊",
+            "cost": "-",
+            "tpReward": "2+［射擊技巧數*2］",
+            "restriction": "-",
+            "effect": "造成《2D6》傷害。 攻擊前每宣言一個射擊技巧，此特技會心-1(上限-3)。 你可以在準備階段宣言攻擊對象，而後行動點數-10，該次攻擊命中+2D6。"
+          },
+          {
+            "name": "意外之擊",
+            "isDividepoint": false,
+            "trigger": "通常",
+            "cost": "-",
+            "tpReward": "成功時10",
+            "restriction": "無",
+            "effect": "偷襲判定在同一場景中最初有5點加成。 被偷襲側必須用2D6+【知覺】對抗你【理智】+［狩人等級］。 被偷襲側失敗後，能在準備階段用2D6+【體力】再度對抗，成功的話在你之後行動。 偷襲成功後，該回合可在結束階段額外進行一次逃跑判定。 一劇本最多1+［戰場掌握等級/2］回使用"
+          },
+          {
+            "name": "戰場掌握",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "此特技可以重複取得，上限為［你的狩人等級］。 登場角色中此特技等級最高的人，無條件優先進行主要階段。 每等級［行動］+1、逃跑判定+1。 僅限最初的回合，逃跑判定額外+《5》。 劇本結束時可以選擇戰場掌握或槍手本能任一等級+1。"
+          },
+          {
+            "name": "R．弓弦改造",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "〈弓〉和〈弩弓〉追加命中+1，射擊技巧代價傷害-5。 【R】特技的效果不能夠同時發動。"
+          },
+          {
+            "name": "Ｒ．弓體改造",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "〈弓〉和〈弩弓〉追加1D6傷害，可以同時使用兩種射擊技巧。 【R】特技的效果不能夠同時發動。"
+          },
+          {
+            "name": "射擊技巧．牽制",
+            "isDividepoint": false,
+            "trigger": "中斷",
+            "cost": "代價傷害15",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "任意角色在戰鬥中進行以下行動時可以宣言。 ●進入［待機狀態］ ●從［行動完成狀態］恢復為［未行動狀態］ ●行動點數增加(含0以下變成1) 對該角色進行一次通常攻擊，不能組合進攻特技、待機或蓄力。 實際傷害後效果，防禦側成為［行動完成狀態］，效果發揮後你成為［行動完成狀態］。 一場戰鬥最多1+［你的狩人等級/3］回。"
+          },
+          {
+            "name": "射擊技巧．強力",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "無",
+            "tpReward": "2+［蓄力數*2］",
+            "restriction": "無",
+            "effect": "使用［射擊］判定攻擊時可以使用。 傷害增加1D6+《射擊技巧數目x3》點。 武器選擇〈弓〉時取消上述效果，變更為攻擊順位移到最後並直接進入蓄力層數上限。 傷害增加［蓄力數x2］D6。 攻擊前不能宣言其他特技和迴避，否則中斷攻擊並進入［行動完成狀態］。 攻擊前如果受到實傷，［蓄力數］-2。 一場戰鬥最多1+［你的狩人等級/3］回。 此特技只有透過弓體改造效果才能與其他射擊技巧併用。"
+          },
+          {
+            "name": "射擊技巧．先制",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "代價傷害10",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "此技能只有戰鬥第一回合時可使用。 優先進行主要階段(但戰場掌握優先於這個效果)。 成功時下次攻擊命中和傷害增加［你持有的射擊技巧數］D6。"
+          },
+          {
+            "name": "射擊技巧．迅速",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "-",
+            "tpReward": "5",
+            "restriction": "無",
+            "effect": "被偷襲時，你能在偷襲者之後行動。 使用［射擊］判定攻擊時可以宣言： 你的命中+《射擊技巧數》點。 武器選擇〈弓〉時［蓄力］額外+1。 一場戰鬥最多1+［你的狩人等級/3］回。 此特技只有透過弓體改造效果才能與其他射擊技巧併用。"
+          },
+          {
+            "name": "射擊技巧．曲射",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "-",
+            "tpReward": "5",
+            "restriction": "無",
+            "effect": "使用【射擊】判定攻擊時可以宣言。 此次攻擊不能被［掩護］也不受［分類：中斷］的特技影響。 戰鬥中初次使用時，防禦側迴避減少你的《射擊技巧數》點。 一場戰鬥最多1+［你的狩人等級/3］回。"
+          }
+        ]
+      },
+      {
+        "sectionId": "description_skill3",
+        "sectionName": "一般特技-槍系",
+        "isExtra": false,
+        "skillCount": 11,
+        "skills": [
+          {
+            "name": "槍手本能",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "可以重複取得，特技上限為［狩人等級］。 你對進入［行動完成狀態］或在你行動前迴避失敗的對象，造成的傷害視為［會心傷害］。 每等級提供1點額外傷害和1D6額外會心傷害。 劇本結束時可以選擇戰場掌握或槍手本能任一等級+1。"
+          },
+          {
+            "name": "槍",
+            "isDividepoint": false,
+            "trigger": "攻擊類型/射擊",
+            "cost": "下回合行動點-6",
+            "tpReward": "2",
+            "restriction": "無",
+            "effect": "造成《2D6》傷害。 對有〈鎖定〉或該回合受到〈彈幕支援〉、〈戰場威脅〉實傷的對象，追加命中判定差值傷害。"
+          },
+          {
+            "name": "彈幕支援",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "行動點10",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "指定任一區域的敵方角色迴避判定-2、需要達成值的判定失敗時受到《1D6》傷害。 對［行動完成狀態］的對象效果變更為迴避-1。"
+          },
+          {
+            "name": "戰場威脅",
+            "isDividepoint": false,
+            "trigger": "中斷",
+            "cost": "代價傷害10點",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "一回合一次，在任意角色主要階段結束時可以宣言。 對該角色進行一次通常攻擊，不能組合進攻特技和待機、蓄力。 如果你已進入［行動完成狀態］則不能宣言此特技。"
+          },
+          {
+            "name": "沉默的狙擊手",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "代價傷害10點",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你主要階段時【射擊】+3、射擊傷害增加《狩人等級》。 被攻擊時迴避-2、受到的攻擊傷害增加1D6。"
+          },
+          {
+            "name": "射擊穩定器",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "移除〈槍〉下回合行動降低的懲罰。 〈弓〉和〈槍〉追加效果：此回合使用其他狩人特技成功後，進攻特技的組合上限提高為2。"
+          },
+          {
+            "name": "致殘射擊",
+            "isDividepoint": false,
+            "trigger": "進攻／共通",
+            "cost": "代價傷害10",
+            "tpReward": "0",
+            "restriction": "魔術師級別",
+            "effect": "實傷後效果，防禦側受到你［槍手本能等級］D6的實際傷害。 若防禦側不是［行動完成狀態］，防禦側下次判定-4。"
+          },
+          {
+            "name": "快速裝填",
+            "isDividepoint": false,
+            "trigger": "中斷",
+            "cost": "代價傷害15",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "一場戰鬥一次，因為自己的特技行動降低或進入［行動完成狀態］時，你的行動點數+10。"
+          },
+          {
+            "name": "C．快速武裝配件",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "─",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你的〈槍〉追加以下效果： ●〈彈幕支援〉：追加10行動點，對象迴避-2。 ●攻擊該回合受到〈彈幕支援〉、〈戰場威脅〉實傷的對象時，命中+3。 【C】特技的效果同時只能存在一種，戰鬥外一天一次可更換適用效果"
+          },
+          {
+            "name": "C．輕武裝配件",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你的〈槍〉追加命中會心-1和以下效果： 〈致殘射擊〉：對象迴避-4，持續到防禦側的主要階段開始。 【C】特技的效果同時只能存在一種，戰鬥外一天一次可更換適用效果"
+          },
+          {
+            "name": "C．重武裝配件",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你的〈槍〉追加1D6傷害和以下效果： 〈戰場威脅〉：可組合進攻特技，效果發揮後你進入［行動完成狀態］。 【C】特技的效果同時只能存在一種，戰鬥外一天一次可更換適用效果"
+          }
+        ]
+      },
+      {
+        "sectionId": "description_skill5",
+        "sectionName": "額外特技",
+        "isExtra": true,
+        "skillCount": 6,
+        "skills": [
+          {
+            "name": "矢林彈雨",
+            "isDividepoint": false,
+            "trigger": "進攻/射擊",
+            "cost": "代價傷害15",
+            "tpReward": "0",
+            "restriction": "狩人等級4以上",
+            "effect": "指定任一區域內的所有敵方角色進行通常攻擊。當該處為〈彈幕支援〉的對象區域時，命中+《4》。 主要階段結束後，你變成［行動完成狀態］。 一場戰鬥最多［射擊技巧數］回使用。"
+          },
+          {
+            "name": "槍劍之舞",
+            "isDividepoint": false,
+            "trigger": "進攻/共通",
+            "cost": "代價傷害10",
+            "tpReward": "0",
+            "restriction": "狩人等級3以上",
+            "effect": "［攻擊類型/近戰］的特技可視為［射擊］判定，［攻擊類型/射擊］的特技可視為［近戰］判定。 可通用搭配［射擊］與［近戰］的進攻特技。"
+          },
+          {
+            "name": "百步穿楊",
+            "isDividepoint": false,
+            "trigger": "進攻/射擊",
+            "cost": "代價傷害20",
+            "tpReward": "0",
+            "restriction": "狩人等級4以上",
+            "effect": "可以再組合一個進攻特技，並擁有以下效果： ●對逃跑的對象進行一次攻擊，不能組合其他進攻特技、待機或蓄力。 ●命中增加《戰場掌握等級》點，對逃跑的對象《》值成為兩倍。 ●可進行兩次命中骰取其高者。 一劇本最多1回使用，戰場掌握等級6以上額外增加1次。"
+          },
+          {
+            "name": "致死射擊",
+            "isDividepoint": false,
+            "trigger": "進攻/射擊",
+            "cost": "代價傷害20",
+            "tpReward": "0",
+            "restriction": "狩人等級4以上",
+            "effect": "可以再組合一個進攻特技，並擁有以下效果： ●傷害骰是6的骰子，每一顆造成最大HP10%的上限傷害(最大50%)。 ●實傷後效果，當防禦側HP低於50%或50%上限傷害時直接戰鬥不能。 ●實傷後效果，防禦側一天內HP都無法回復、上限傷害不能移除。 一劇本最多1回使用，槍手本能等級6以上額外增加1次。"
+          },
+          {
+            "name": "技近乎道",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "持有全部五種射擊技巧",
+            "effect": "〈射擊技巧〉《》［］內的值都+2。 一劇本一回，你可以立刻讓待機時間結束，或是維持〈射擊技巧．強力〉的［蓄力數］同時取消行動順延。"
+          },
+          {
+            "name": "長距離射擊",
+            "isDividepoint": true,
+            "trigger": "通用／準備階段",
+            "cost": "代價傷害20",
+            "tpReward": "0",
+            "restriction": "戰場掌握等級4以上",
+            "effect": "一劇本最多［狩人等級-3］回使用。 戰鬥中可在準備階段進行一次通常攻擊，不能組合進攻特技、待機或蓄力。 戰鬥外： ●就算和防禦側不在同區域登場也可以進行攻擊。 ●進行蓄力或待機延遲的話，防禦側的感知判定可以進行兩次取其高者。 ●在戰鬥外只要沒被感知成功，防禦側就不能宣言任何特技、風格效果。 ●若防禦側感知成功，可獲得額外的［待機延遲/2］點或［蓄力數］點迴避獎勵。 ●武器選擇〈弓〉時，［蓄力］數等於你的〈射擊技巧數〉。 ●待機延遲1=1秒、蓄力1層=5秒，以此為準計算時間。 ●無法掌握位置的對象不能攻擊。持有〈百步穿楊〉時，視為有能力掌握不同區域角色的行動。"
+          }
+        ]
+      }
+    ]
+  },
+  "esper": {
+    "classId": "esper",
+    "acquisitionRules": "取得特技 ▲ 初期取得： 從「一代變異」「血脈」中選一，而後再選擇一個自己喜歡的特技。 升級： 等級上升之時、選取一個喜歡的特技。每逢5等、10等時，可以額外再取得一個特技。",
+    "sections": [
+      {
+        "sectionId": "description_skill1",
+        "sectionName": "一般特技",
+        "isExtra": false,
+        "skillCount": 15,
+        "skills": [
+          {
+            "name": "一代變異",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "未持有「血脈」",
+            "effect": "你天生就開啟著與眾不同的「頻道」。 所有判定常時+《1》。若你只擁有超能力者級別，《》的值更改為1D6。"
+          },
+          {
+            "name": "血脈",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "未持有「一代變異」",
+            "effect": "你繼承著好幾代累積而來的「異能」。 你的近戰、射擊、行動、生命力、集中力修正值增加﹝【精神】/3﹞(去小數點)。"
+          },
+          {
+            "name": "過去視",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你可窺視他人的記憶，化為自己的虛擬體驗。需要判定的場合使用精神。 這個技能一天可以使用【你的超能力等級】次數。 將這個技能以無盡破壞使用的話，可以在你的﹝【超能力等級】/3﹞回合內，拷貝使用對象所有非常時技能。"
+          },
+          {
+            "name": "未來視──預測",
+            "isDividepoint": false,
+            "trigger": "常時／通用",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你的理智判定常時+2。戰鬥中從第二回合開始，每回合你的命中與迴避判定達成值+1。 將這個技能以無盡破壞使用的話，在你的﹝【超能力者等級】/3﹞回合內，命中與迴避判定達成值額外增加【超能力者等級】。"
+          },
+          {
+            "name": "未來視──測定",
+            "isDividepoint": false,
+            "trigger": "常時／通用",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你的意志判定常時+2。你可以在任何判定的時候使用這個技能產生會心，這個會心一劇本只能使用一次。將這個技能以無盡破壞使用的話，可以再次會心，這個無盡破壞產生的會心沒有劇本使用限制。"
+          },
+          {
+            "name": "現在視",
+            "isDividepoint": false,
+            "trigger": "常時／通用",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你偶爾可以同時使用兩種以上的感覺來認識事物。能分辨文字裡包含的顏色、能聽見聲音的形狀、能感受語言的美味和苦味。此狀態面對問題時，不需特別思考也能直覺似地通曉答案。你的1、1視同6、6，將這技能以無盡破壞使用的話，可以在你的﹝【超能力等級】/3﹞回合內，你在4以下以及10以上的骰數都視為會心。"
+          },
+          {
+            "name": "感應",
+            "isDividepoint": false,
+            "trigger": "通用",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你每扣掉Ｎ點體力或是TP，就可以將同等戰鬥數值數值強化到他人身上。此數值不得超過你的【超能力者】級別。"
+          },
+          {
+            "name": "透視",
+            "isDividepoint": false,
+            "trigger": "常時／通用",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "你的知覺判定常時+2。 即使人不在現場，你可以在一瞬間看見某個你去過地點的景象。 這個技能一天可以使用【超能力者等級】次。 將這個技能以無盡破壞使用的話，可以對你使用透視看到的目標進行一次攻擊。"
+          },
+          {
+            "name": "念寫",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "將心中所想的事物顯現在紙張或其他媒介上的能力。 進行交流獲取情報的判定常時+2。 你可以把心中的想法化為不超過20字的文字傳送給肉眼所見的某人，需要判定的場合使用精神。 這個技能一天可以使用【超能力者等級】次。 將這個技能以無盡破壞使用的話，使一名對象命中和迴避下降【超能力者等級】直到戰鬥結束。"
+          },
+          {
+            "name": "念附",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "代價傷害10點",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "一戰鬥一次。在一回合內可以使用精神代替行動、近戰、射擊判定。"
+          },
+          {
+            "name": "能力封印",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "無",
+            "effect": "選取一個你擁有的特技，將其內文數值+3，一個劇本只能使用三次。特技有疑慮問題由GM判定。 「嗚啊啊──我的右手......！！」"
+          },
+          {
+            "name": "概念破壞",
+            "isDividepoint": false,
+            "trigger": "攻擊類型／精神",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "一代變異",
+            "effect": "指定全區域一對象造成《3D6》傷害。"
+          },
+          {
+            "name": "念動",
+            "isDividepoint": false,
+            "trigger": "進攻特技／共通",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "一代變異",
+            "effect": "與攻擊目標進行精神對抗，若成功，本次攻擊傷害追加對抗的差值；若失敗，本次攻擊命中失敗。"
+          },
+          {
+            "name": "體術",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "血脈",
+            "effect": "你的空手傷害常時增加《超能力者等級》。 你的近戰和射擊常時+1，生命力和集中力常時+10。 當你進行高難度動作(例如爬樹、衝刺......)需要體力判定時，在GM認可的情況下可以視為直接成功。"
+          },
+          {
+            "name": "淨眼",
+            "isDividepoint": false,
+            "trigger": "常時／準備階段",
+            "cost": "代價傷害5點",
+            "tpReward": "0",
+            "restriction": "血脈",
+            "effect": "當你遇到其他角色時，你能得知該角色擁有的級別。 戰鬥中使用時，隨機得知對象的一項戰鬥數值。 需要判定的場合使用精神。"
+          }
+        ]
+      },
+      {
+        "sectionId": "description_skill2",
+        "sectionName": "額外特技",
+        "isExtra": true,
+        "skillCount": 14,
+        "skills": [
+          {
+            "name": "退魔衝動",
+            "isDividepoint": true,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "血脈",
+            "effect": "你的近戰、射擊、行動、生命力、集中力級別修正值成為﹝【精神】/2﹞(去小數點)。 你面對混有【狩獵者】級別的PC、NPC戰鬥時，全判定+5。你能察覺有【狩獵者】級別者，初次接觸時立即進行【難易度10+對方狩獵者等級】的精神判定骰 ，失敗或放棄的話你會失去理智，不顧一切殺死對方。此效果維持到你行動不能或是對方死亡。 二次見面以後不需判定。"
+          },
+          {
+            "name": "擬似元素",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "超能力者等級一以上",
+            "effect": "取得此技能時，你獲得四點屬性點數。並可以隨意分配在任意屬性上。此屬性無法與【魔術師】級別獲得的屬性加算。"
+          },
+          {
+            "name": "咒視",
+            "isDividepoint": false,
+            "trigger": "攻擊類型／精神",
+            "cost": "代價傷害10點",
+            "tpReward": "0",
+            "restriction": "超能力者等級三以上",
+            "effect": "造成《1D6》傷害，實傷階段賦予一名目標一種隨機不良狀態。"
+          },
+          {
+            "name": "阿賴耶識的抑止力",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "超能力者等級四以上",
+            "effect": "一劇本10人以上角色死亡時發動。 你到劇本結束為止，每到場景終了（戰鬥中是到回合終了為止）增加100點TP。 你的全判定+1D6(這個數值不能超過你的超能力者等級)，無盡破壞使用次數+1，已使用次數重置。"
+          },
+          {
+            "name": "極限",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "超能力者等級四以上",
+            "effect": "一劇本一次，你進入行動不能時自動發動，你回覆［正面感情TP總和］HP，並且此效果在你的﹝超能力等級/3﹞回合內不限次數發動。"
+          },
+          {
+            "name": "生命的光輝",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "超能力者等級五以上",
+            "effect": "你可以在任何時間點，使自己的HP上限剩下1。在場景結束前可以取得其他級別的任兩個特技(如果有取得條件，則必須滿足)並使用。場景結束前，你的判定增加你的【超能力者等級】。"
+          },
+          {
+            "name": "幻想之瞳（偽）",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "最大生命力／2",
+            "tpReward": "0",
+            "restriction": "創造角色時限定獲得",
+            "effect": "你可以取得其他級別任何非額外技能的特技2個。"
+          },
+          {
+            "name": "未來視──神知",
+            "isDividepoint": false,
+            "trigger": "常時／通用",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "未來視──預測、未來視──測定",
+            "effect": "每當你的任何判定失敗時，達成值追加1D6。一個判定只能使用一次。 這個技能一天可以使用【你的超能力等級】次數。 將這個技能以無盡破壞使用的話，戰鬥中指定一個目標，在［【超能力者等級】/3］回合內你對他的所有對抗判定會心-3。"
+          },
+          {
+            "name": "現象干涉",
+            "isDividepoint": false,
+            "trigger": "中斷",
+            "cost": "傷害代價10點",
+            "tpReward": "0",
+            "restriction": "一代變異，超能力者等級三以上",
+            "effect": "一劇本可以使用【超能力者等級-2】次。從以下效果擇一發動："
+          },
+          {
+            "name": "心靈鎖鏈",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "代價傷害20",
+            "tpReward": "0",
+            "restriction": "一代變異，超能力者等級三以上",
+            "effect": "指定兩名對象(不可為自己)，若其中一人受到實際傷害，另一人也會受到同等數值的實際傷害。 效果發揮或回合結束後解除。 「沒想到你可以到這裡來，不過就到此為止了，接下來就由我鎖鏈的......」"
+          },
+          {
+            "name": "魔之混血",
+            "isDividepoint": false,
+            "trigger": "常時",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "血脈，超能力者等級三以上",
+            "effect": "你獲得特技【人外血脈：鬼種】，技能敘述裡的「鬼種技能」更改為「超能力者技能」，【狩獵者】更改為【超能力者】。"
+          },
+          {
+            "name": "第十二頻道",
+            "isDividepoint": false,
+            "trigger": "中斷",
+            "cost": "代價傷害50點",
+            "tpReward": "0",
+            "restriction": "一代變異，超能力者等級七以上",
+            "effect": "一劇本一次，在本場景/戰鬥結束前，你可以使三次判定產生會心。場景/戰鬥結束後你的TP歸零並進入行動不能狀態。 將這個技能以無盡破壞使用的話，可以重置會心的使用次數。"
+          },
+          {
+            "name": "雙重存在",
+            "isDividepoint": false,
+            "trigger": "常時／結束階段",
+            "cost": "-",
+            "tpReward": "0",
+            "restriction": "血脈，超能力者等級五以上",
+            "effect": "創造一個等級相當於【超能力者等級-2】、但是不能擁有【超能力者】級別的角色，此角色是你的另一人格，且兩個人格的記憶互通，可以隨時隨地切換。戰鬥中則只能在結束階段切換。 該角色的等級隨著你的【超能力者等級】提升。不管是原本角色還是創造出來的角色，只要其中一個人格死亡，另一人格也會跟著死亡。"
+          },
+          {
+            "name": "偽‧生之魔眼",
+            "isDividepoint": false,
+            "trigger": "準備階段",
+            "cost": "代價傷害15",
+            "tpReward": "0",
+            "restriction": "超能力者等級六以上",
+            "effect": "一劇本【超能力者等級-5】次。你能短暫地看到生物的生之線。戰鬥中使用時，在戰鬥結束前，你的攻擊傷害增加對象最大生命值的五分之一。"
+          }
+        ]
+      }
+    ]
+  }
+}
