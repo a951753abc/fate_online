@@ -28,8 +28,26 @@ import {
   buildGroupViews,
   buildInitPayloadForPlayer,
 } from "../game/initializeGame.js";
-import { NightCycleEngine, DEFAULT_NIGHT_CONFIG } from "../game/nightCycle.js";
-import { registerGame } from "../game/activeGames.js";
+import { initializePrep } from "../game/prepManager.js";
+import { getAvailableLevels, DEFAULT_LEVEL_CONFIG } from "../game/character/masterLevels.js";
+import type { NightState } from "../game/types.js";
+import type { PrepConfig, MasterLevelView } from "../shared/protocol.js";
+
+// Static prep config — same for every game, compute once at module load
+const PREP_CONFIG: PrepConfig = Object.freeze({
+  startingPoints: DEFAULT_LEVEL_CONFIG.startingPoints,
+  gameLevel: DEFAULT_LEVEL_CONFIG.gameLevel,
+  maxClasses: DEFAULT_LEVEL_CONFIG.maxClasses,
+  availableLevels: Object.freeze(
+    getAvailableLevels().map((def) =>
+      Object.freeze({
+        id: def.id,
+        nameJa: def.nameJa,
+        baseStats: def.baseStats,
+      }),
+    ),
+  ) as readonly MasterLevelView[],
+});
 
 // Track disconnect timers for reconnection grace period
 const disconnectTimers = new Map<string, NodeJS.Timeout>();
@@ -147,12 +165,13 @@ export function registerRoomEvents(io: Server, socket: Socket): void {
       const pairing = assignRoles(players, state.maxGroups);
       emitRoomStarted(io, code, pairing);
 
-      // Phase 1: Initialize game state
+      // Initialize game in preparation phase
       const groups = buildGroupsFromPairing(pairing);
       const startingPositions = assignStartingPositions(groups.length);
       const characters = buildCharactersFromGroups(groups, startingPositions);
-      const phaseEndsAt = Date.now() + DEFAULT_NIGHT_CONFIG.freeActionDurationMs;
-      const gameState = await initializeGame(code, groups, characters, phaseEndsAt);
+      const prepNight: NightState = { nightNumber: 0, phase: "preparation", phaseEndsAt: 0 };
+      const gameState = await initializeGame(code, groups, characters, prepNight, "preparation");
+      await initializePrep(code, groups);
 
       // Build nickname map for group views
       const nicknames = new Map<string, string>();
@@ -160,10 +179,6 @@ export function registerRoomEvents(io: Server, socket: Socket): void {
         nicknames.set(id, player.nickname);
       }
       const groupViews = buildGroupViews(groups, nicknames);
-
-      // Start night cycle
-      const engine = new NightCycleEngine(code, io);
-      registerGame(code, engine);
 
       // Emit personalized game:initialized to each player
       const sockets = await io.in(code).fetchSockets();
@@ -174,13 +189,12 @@ export function registerRoomEvents(io: Server, socket: Socket): void {
           characters,
           groupViews,
           gameState.night,
+          PREP_CONFIG,
         );
         if (payload) {
           s.emit(ServerEvents.GAME_INITIALIZED, payload);
         }
       }
-
-      engine.start();
     }),
   );
 

@@ -9,6 +9,8 @@ export const ClientEvents = Object.freeze({
   ROOM_REQUEST_STATE: "room:requestState",
   DICE_ROLL: "dice:roll",
   GAME_MOVE: "game:move",
+  PREP_SUBMIT: "prep:submit",
+  PREP_READY: "prep:ready",
 } as const);
 
 // Server → Client events
@@ -29,6 +31,8 @@ export const ServerEvents = Object.freeze({
   GAME_NIGHT_REPORT: "game:nightReport",
   GAME_LOCATION_DESTROYED: "game:locationDestroyed",
   GAME_ENDED: "game:ended",
+  PREP_RESULT: "prep:result",
+  PREP_STATE: "prep:state",
 } as const);
 
 export type ClientEventName = (typeof ClientEvents)[keyof typeof ClientEvents];

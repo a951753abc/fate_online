@@ -65,7 +65,7 @@ export type LocationId =
   | "river-mouth"
   | "aqueduct";
 
-export type NightPhase = "free_action" | "encounter" | "settlement";
+export type NightPhase = "preparation" | "free_action" | "encounter" | "settlement";
 
 export interface CharacterPositionView {
   readonly characterId: string;
@@ -88,6 +88,7 @@ export interface GameInitializedPayload {
   readonly groups: readonly GroupView[];
   readonly positions: readonly CharacterPositionView[];
   readonly night: NightStateView;
+  readonly prepConfig?: PrepConfig;
 }
 
 export interface NightStateView {
@@ -137,4 +138,87 @@ export interface LocationDestroyedPayload {
 export interface GameEndedPayload {
   readonly reason: "last_pair" | "grail_rampage" | "all_eliminated";
   readonly winnerGroupIndex?: number;
+}
+
+// === Preparation Types (Phase 2-3a) ===
+
+export type PrepStatus = "pending" | "submitted" | "ready";
+
+export interface MasterLevelView {
+  readonly id: string;
+  readonly nameJa: string;
+  readonly baseStats: {
+    readonly body: number;
+    readonly perception: number;
+    readonly reason: number;
+    readonly will: number;
+  };
+}
+
+export interface PrepConfig {
+  readonly startingPoints: number;
+  readonly gameLevel: number;
+  readonly maxClasses: number;
+  readonly availableLevels: readonly MasterLevelView[];
+}
+
+export interface PrepSubmitPayload {
+  readonly allocation: readonly { readonly levelId: string; readonly level: number }[];
+  readonly freePoint: "body" | "perception" | "reason" | "will";
+}
+
+export interface PrepResultPayload {
+  readonly success: boolean;
+  readonly error?: string;
+  readonly stats?: {
+    readonly baseAbilities: {
+      readonly body: number;
+      readonly perception: number;
+      readonly reason: number;
+      readonly will: number;
+    };
+    readonly bonuses: {
+      readonly body: number;
+      readonly perception: number;
+      readonly reason: number;
+      readonly will: number;
+    };
+    readonly baseCombat: {
+      readonly melee: number;
+      readonly ranged: number;
+      readonly spirit: number;
+      readonly action: number;
+      readonly hp: number;
+      readonly focus: number;
+      readonly defense: number;
+    };
+    readonly levelModifiers: {
+      readonly melee: number;
+      readonly ranged: number;
+      readonly spirit: number;
+      readonly action: number;
+      readonly hp: number;
+      readonly focus: number;
+      readonly defense: number;
+    };
+    readonly finalCombat: {
+      readonly melee: number;
+      readonly ranged: number;
+      readonly spirit: number;
+      readonly action: number;
+      readonly hp: number;
+      readonly focus: number;
+      readonly defense: number;
+    };
+  };
+}
+
+export interface PrepPlayerState {
+  readonly characterId: string;
+  readonly role: "master" | "servant";
+  readonly status: PrepStatus;
+}
+
+export interface PrepStatePayload {
+  readonly players: readonly PrepPlayerState[];
 }

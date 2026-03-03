@@ -27,6 +27,17 @@ const ADJACENCY: Record<string, readonly string[]> = (() => {
 
 const ROLE_CYCLE = ["master", "servant", "any"] as const;
 
+// Available master levels for bot character creation
+const MASTER_LEVEL_IDS = [
+  "magician",
+  "executor",
+  "swordsman",
+  "fighter",
+  "hunter",
+  "esper",
+] as const;
+const ABILITY_KEYS = ["body", "perception", "reason", "will"] as const;
+
 const COLORS = [
   "\x1b[36m", // cyan
   "\x1b[33m", // yellow
@@ -177,6 +188,8 @@ function createBot(index: number, roomCode: string | null, isCreator: boolean): 
       yourGroupIndex: number;
       yourRole: string;
       yourLocation: string;
+      night: { phase: string };
+      prepConfig?: { gameLevel: number };
     }) => {
       bot.characterId = payload.yourCharacterId;
       bot.groupIndex = payload.yourGroupIndex;
@@ -186,8 +199,50 @@ function createBot(index: number, roomCode: string | null, isCreator: boolean): 
         bot,
         `initialized: ${payload.yourRole} in group ${payload.yourGroupIndex}, location=${payload.yourLocation}`,
       );
+
+      // Handle preparation phase: auto-submit build for Master bots
+      if (payload.night.phase === "preparation" && payload.yourRole === "master") {
+        const gameLevel = payload.prepConfig?.gameLevel ?? 4;
+        // Pick 1-2 random classes
+        const classCount = Math.random() < 0.5 ? 1 : 2;
+        const shuffled = [...MASTER_LEVEL_IDS].sort(() => Math.random() - 0.5);
+        const picked = shuffled.slice(0, classCount);
+        const allocation = picked.map((id, i) => {
+          if (i === classCount - 1) {
+            // Last class gets remaining points
+            const used = picked.slice(0, i).length; // each previous gets 1
+            return { levelId: id, level: gameLevel - used };
+          }
+          return { levelId: id, level: 1 };
+        });
+        const freePoint = ABILITY_KEYS[Math.floor(Math.random() * ABILITY_KEYS.length)];
+
+        const delay = 500 + Math.random() * 1500;
+        setTimeout(() => {
+          log(
+            bot,
+            `submitting build: ${allocation.map((a) => `${a.levelId} LV${a.level}`).join(", ")}`,
+          );
+          socket.emit(ClientEvents.PREP_SUBMIT, { allocation, freePoint });
+        }, delay);
+      }
     },
   );
+
+  // Prep result: auto-ready after successful submission
+  socket.on(ServerEvents.PREP_RESULT, (payload: { success: boolean; error?: string }) => {
+    if (payload.success) {
+      log(bot, "build accepted, confirming ready...");
+      setTimeout(
+        () => {
+          socket.emit(ClientEvents.PREP_READY);
+        },
+        300 + Math.random() * 700,
+      );
+    } else {
+      log(bot, `build rejected: ${payload.error}`);
+    }
+  });
 
   socket.on(
     ServerEvents.GAME_PHASE_CHANGE,

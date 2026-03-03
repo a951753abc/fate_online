@@ -1,7 +1,7 @@
 import type { LocationId } from "./map/types.js";
 
-export type NightPhase = "free_action" | "encounter" | "settlement";
-export type GameStatus = "initializing" | "active" | "ended";
+export type NightPhase = "preparation" | "free_action" | "encounter" | "settlement";
+export type GameStatus = "initializing" | "preparation" | "active" | "ended";
 export type CharacterType = "master" | "servant";
 
 export interface CharacterState {

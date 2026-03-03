@@ -2,8 +2,10 @@ import { useMemo } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import { useSocketContext } from "../context/SocketContext.js";
 import { useGameState } from "../hooks/useGameState.js";
+import { usePreparation } from "../hooks/usePreparation.js";
 import { MapView } from "../components/game/MapView.js";
 import { NightHud } from "../components/game/NightHud.js";
+import { MasterCreation } from "../components/game/MasterCreation.js";
 import type { LocationId, GameInitializedPayload } from "../types/protocol.js";
 import mapData from "../../../map/map-data.json";
 
@@ -54,6 +56,7 @@ export function GamePage() {
   const { socket } = useSocketContext();
   const navGameInit = (location.state as { gameInit?: GameInitializedPayload } | null)?.gameInit;
   const game = useGameState(socket, navGameInit);
+  const prep = usePreparation(socket);
 
   const myLocation =
     game.gameData && game.positions.length > 0
@@ -67,6 +70,28 @@ export function GamePage() {
     () => (canMove ? getValidMoves(myLocation) : []),
     [canMove, myLocation],
   );
+
+  // Preparation phase: show character creation
+  if (game.gameData && game.nightState?.phase === "preparation") {
+    if (!game.gameData.prepConfig) {
+      return (
+        <div style={{ maxWidth: "800px", margin: "40px auto", padding: "24px", color: "#c9d1d9" }}>
+          <p>準備階段載入中...</p>
+        </div>
+      );
+    }
+    return (
+      <MasterCreation
+        prepConfig={game.gameData.prepConfig}
+        prepState={prep.prepState}
+        buildResult={prep.buildResult}
+        myCharacterId={game.gameData.yourCharacterId}
+        myRole={game.gameData.yourRole}
+        onSubmit={prep.submitBuild}
+        onReady={prep.confirmReady}
+      />
+    );
+  }
 
   if (!socket) {
     return (

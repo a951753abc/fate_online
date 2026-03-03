@@ -6,6 +6,7 @@ import type {
   GroupView,
   CharacterPositionView,
   NightStateView,
+  PrepConfig,
 } from "../shared/protocol.js";
 
 export function buildGroupsFromPairing(pairing: PairingResult): readonly GroupState[] {
@@ -97,6 +98,7 @@ export function buildInitPayloadForPlayer(
   characters: readonly CharacterState[],
   groupViews: readonly GroupView[],
   nightState: NightStateView,
+  prepConfig?: PrepConfig,
 ): GameInitializedPayload | null {
   // Find which character this player is
   const myChar = characters.find((c) => c.characterId === playerId);
@@ -113,7 +115,7 @@ export function buildInitPayloadForPlayer(
     ),
   );
 
-  return Object.freeze({
+  const base = {
     yourCharacterId: playerId,
     yourGroupIndex: myChar.groupIndex,
     yourRole: myChar.type,
@@ -121,5 +123,7 @@ export function buildInitPayloadForPlayer(
     groups: groupViews,
     positions,
     night: nightState,
-  });
+  };
+
+  return Object.freeze(prepConfig ? { ...base, prepConfig } : base);
 }

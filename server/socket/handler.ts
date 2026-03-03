@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import type { Server } from "socket.io";
 import { registerRoomEvents } from "./roomEvents.js";
 import { registerGameEvents } from "./gameEvents.js";
+import { registerPrepEvents } from "./prepEvents.js";
 import { rollDice } from "../dice/engine.js";
 import { ClientEvents } from "./events.js";
 import { emitDiceResult, emitRoomError } from "./emitter.js";
@@ -27,6 +28,7 @@ export function setupSocketHandler(io: Server): void {
 
     registerRoomEvents(io, socket);
     registerGameEvents(io, socket);
+    registerPrepEvents(io, socket);
 
     // Dice roll handler
     socket.on(

@@ -15,6 +15,7 @@ import { getMasterLevelDef, MASTER_LEVEL_IDS, DEFAULT_LEVEL_CONFIG } from "./mas
 export function validateAllocation(
   allocation: readonly LevelAllocation[],
   config: LevelConfig = DEFAULT_LEVEL_CONFIG,
+  expectedTotal: number = config.gameLevel,
 ): string | null {
   if (allocation.length === 0) {
     return "至少需要選擇一個級別";
@@ -47,8 +48,8 @@ export function validateAllocation(
     totalLevel += entry.level;
   }
 
-  if (totalLevel !== config.gameLevel) {
-    return `等級總和必須為 ${config.gameLevel}，目前為 ${totalLevel}`;
+  if (totalLevel !== expectedTotal) {
+    return `等級總和必須為 ${expectedTotal}，目前為 ${totalLevel}`;
   }
 
   return null;

@@ -24,23 +24,25 @@ export async function initializeGame(
   roomCode: string,
   groups: readonly GroupState[],
   characters: readonly CharacterState[],
-  phaseEndsAt?: number,
+  nightState?: NightState,
+  status: GameStatus = "active",
 ): Promise<GameState> {
   const redis = getRedis();
-  const endsAt = phaseEndsAt ?? Date.now();
-  const night: NightState = Object.freeze({
-    nightNumber: 1,
-    phase: "free_action" as NightPhase,
-    phaseEndsAt: endsAt,
-  });
+  const night: NightState = nightState
+    ? Object.freeze(nightState)
+    : Object.freeze({
+        nightNumber: 1,
+        phase: "free_action" as NightPhase,
+        phaseEndsAt: Date.now(),
+      });
 
   const pipeline = redis.pipeline();
 
   pipeline.hset(gameKey(roomCode), {
-    status: "active",
-    nightNumber: "1",
-    nightPhase: "free_action",
-    phaseEndsAt: String(endsAt),
+    status,
+    nightNumber: String(night.nightNumber),
+    nightPhase: night.phase,
+    phaseEndsAt: String(night.phaseEndsAt),
   });
 
   for (const group of groups) {
@@ -55,7 +57,7 @@ export async function initializeGame(
 
   return Object.freeze({
     roomCode,
-    status: "active",
+    status,
     groups,
     characters,
     occupations: [],
@@ -93,6 +95,23 @@ export async function getGameState(roomCode: string): Promise<GameState | null> 
     }),
     destroyedLocations: Object.freeze(destroyed as LocationId[]),
   });
+}
+
+const VALID_NIGHT_PHASES = new Set<string>([
+  "preparation",
+  "free_action",
+  "encounter",
+  "settlement",
+]);
+
+export async function getNightPhase(roomCode: string): Promise<NightPhase | null> {
+  const redis = getRedis();
+  const raw = await redis.hget(gameKey(roomCode), "nightPhase");
+  if (!raw) return null;
+  if (!VALID_NIGHT_PHASES.has(raw)) {
+    throw new Error(`Corrupt nightPhase in Redis: "${raw}"`);
+  }
+  return raw as NightPhase;
 }
 
 export async function getCharacter(
