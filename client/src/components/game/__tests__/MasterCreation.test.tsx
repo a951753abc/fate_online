@@ -17,6 +17,12 @@ const mockPrepConfig: PrepConfig = {
     { id: "executor", nameJa: "代行者", baseStats: { body: 3, perception: 3, reason: 3, will: 3 } },
     { id: "fighter", nameJa: "格闘家", baseStats: { body: 5, perception: 3, reason: 1, will: 3 } },
   ],
+  classSkills: {},
+  classAcquisitions: [
+    { classId: "magician", initialSteps: [], perLevelUpCount: 0, bonusLevels: [] },
+    { classId: "executor", initialSteps: [], perLevelUpCount: 0, bonusLevels: [] },
+    { classId: "fighter", initialSteps: [], perLevelUpCount: 0, bonusLevels: [] },
+  ],
 };
 
 const mockPrepState: PrepStatePayload = {
@@ -91,7 +97,7 @@ describe("MasterCreation", () => {
     it("renders header and step indicator", () => {
       renderMasterCreation();
       expect(screen.getByText("マスター創角")).toBeInTheDocument();
-      expect(screen.getByText(/Step 1.*起始配點.*3 等/)).toBeInTheDocument();
+      expect(screen.getByText(/起始配點（3 等）/)).toBeInTheDocument();
     });
 
     it("renders all available level cards", () => {
@@ -158,7 +164,7 @@ describe("MasterCreation", () => {
     it("transitions to step 2 on confirm", () => {
       renderMasterCreation();
       completeStep1();
-      expect(screen.getByText(/Step 2.*升級.*\+1/)).toBeInTheDocument();
+      expect(screen.getByText(/升級（\+1）/)).toBeInTheDocument();
     });
 
     it("shows upgrade selection with existing and new classes", () => {
@@ -182,8 +188,8 @@ describe("MasterCreation", () => {
       completeStep1();
       // Click magician to upgrade LV3 → LV4
       fireEvent.click(screen.getByText(/LV3 → LV4/).closest("button")!);
-      // Remaining should now be 0, submit enabled
-      expect(screen.getByText("送出")).not.toBeDisabled();
+      // Remaining should now be 0, advance to skills enabled
+      expect(screen.getByText("下一步：技能選擇")).not.toBeDisabled();
     });
 
     it("upgrade new class: add at LV1", () => {
@@ -192,7 +198,7 @@ describe("MasterCreation", () => {
       // Click 代行者 (new class)
       const newButtons = screen.getAllByText(/新規 LV1/);
       fireEvent.click(newButtons[0].closest("button")!);
-      expect(screen.getByText("送出")).not.toBeDisabled();
+      expect(screen.getByText("下一步：技能選擇")).not.toBeDisabled();
     });
 
     it("submits combined allocation (starting + upgrade)", () => {
@@ -200,11 +206,15 @@ describe("MasterCreation", () => {
       completeStep1();
       // Upgrade magician → LV4
       fireEvent.click(screen.getByText(/LV3 → LV4/).closest("button")!);
+      // Advance to step 3 (skills)
+      fireEvent.click(screen.getByText("下一步：技能選擇"));
+      // With 0-skill acquisitions, submit is immediately available
       fireEvent.click(screen.getByText("送出"));
 
       expect(props.onSubmit).toHaveBeenCalledWith({
         allocation: [{ levelId: "magician", level: 4 }],
         freePoint: "body",
+        skillSelections: [{ classId: "magician", classLevel: 4, selectedSkillIds: [] }],
       } satisfies PrepSubmitPayload);
     });
 
@@ -214,6 +224,8 @@ describe("MasterCreation", () => {
       // Add 代行者 as new class
       const newButtons = screen.getAllByText(/新規 LV1/);
       fireEvent.click(newButtons[0].closest("button")!);
+      // Advance to step 3 (skills)
+      fireEvent.click(screen.getByText("下一步：技能選擇"));
       fireEvent.click(screen.getByText("送出"));
 
       expect(props.onSubmit).toHaveBeenCalledWith({
@@ -222,6 +234,10 @@ describe("MasterCreation", () => {
           { levelId: "executor", level: 1 },
         ],
         freePoint: "body",
+        skillSelections: [
+          { classId: "magician", classLevel: 3, selectedSkillIds: [] },
+          { classId: "executor", classLevel: 1, selectedSkillIds: [] },
+        ],
       } satisfies PrepSubmitPayload);
     });
 
@@ -229,13 +245,13 @@ describe("MasterCreation", () => {
       renderMasterCreation();
       completeStep1();
       fireEvent.click(screen.getByText("重新選擇"));
-      expect(screen.getByText(/Step 1.*起始配點/)).toBeInTheDocument();
+      expect(screen.getByText(/起始配點（3 等）/)).toBeInTheDocument();
     });
 
-    it("submit is disabled until upgrade is chosen", () => {
+    it("advance to skills is disabled until upgrade is chosen", () => {
       renderMasterCreation();
       completeStep1();
-      expect(screen.getByText("送出")).toBeDisabled();
+      expect(screen.getByText("下一步：技能選擇")).toBeDisabled();
     });
 
     it("level cards are locked in step 2", () => {

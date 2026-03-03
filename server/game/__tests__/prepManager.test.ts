@@ -10,6 +10,8 @@ function getHash(key: string): Map<string, string> {
   return mockRedisData.get(key)!;
 }
 
+const pipelineResults: [null, unknown][] = [];
+
 const mockPipeline = {
   hset: vi.fn((key: string, ...args: unknown[]) => {
     const hash = getHash(key);
@@ -20,13 +22,26 @@ const mockPipeline = {
     } else {
       hash.set(args[0] as string, args[1] as string);
     }
+    pipelineResults.push([null, "OK"]);
+    return mockPipeline;
+  }),
+  hgetall: vi.fn((key: string) => {
+    const hash = getHash(key);
+    const result: Record<string, string> = {};
+    for (const [k, v] of hash) result[k] = v;
+    pipelineResults.push([null, result]);
     return mockPipeline;
   }),
   del: vi.fn((key: string) => {
     mockRedisData.delete(key);
+    pipelineResults.push([null, 1]);
     return mockPipeline;
   }),
-  exec: vi.fn(async () => []),
+  exec: vi.fn(async () => {
+    const results = [...pipelineResults];
+    pipelineResults.length = 0;
+    return results;
+  }),
 };
 
 const mockRedis = {
@@ -95,6 +110,21 @@ const validAllocation: readonly LevelAllocation[] = [
 
 const validFreePoint: AbilityStatKey = "reason";
 
+// Magician LV2: 2 initial (required + 1 free) + 1 level-up = 3
+// Executor LV2: 2 initial (2 free) + 1 level-up = 3
+const validSkillSelections = [
+  {
+    classId: "magician",
+    classLevel: 2,
+    selectedSkillIds: ["mag-magic-circuit", "mag-reinforcement", "mag-parallel-computation"],
+  },
+  {
+    classId: "executor",
+    classLevel: 2,
+    selectedSkillIds: ["exe-black-key", "exe-heresy-judge", "exe-sacrament-seal"],
+  },
+];
+
 describe("prepManager", () => {
   beforeEach(() => {
     mockRedisData.clear();
@@ -159,7 +189,13 @@ describe("prepManager", () => {
     });
 
     it("accepts valid allocation and returns stats", async () => {
-      const result = await submitMasterBuild("R1", "m0", validAllocation, validFreePoint);
+      const result = await submitMasterBuild(
+        "R1",
+        "m0",
+        validAllocation,
+        validFreePoint,
+        validSkillSelections,
+      );
 
       expect(result.success).toBe(true);
       expect(result.stats).toBeDefined();
@@ -167,7 +203,7 @@ describe("prepManager", () => {
     });
 
     it("stores chardata in Redis", async () => {
-      await submitMasterBuild("R1", "m0", validAllocation, validFreePoint);
+      await submitMasterBuild("R1", "m0", validAllocation, validFreePoint, validSkillSelections);
 
       const raw = getHash("game:R1:chardata").get("m0");
       expect(raw).toBeDefined();
@@ -177,16 +213,30 @@ describe("prepManager", () => {
     });
 
     it("sets status to submitted", async () => {
-      await submitMasterBuild("R1", "m0", validAllocation, validFreePoint);
+      await submitMasterBuild("R1", "m0", validAllocation, validFreePoint, validSkillSelections);
 
       expect(getHash("game:R1:prep").get("m0")).toBe("submitted:master");
     });
 
     it("allows re-submission (overwrite)", async () => {
-      await submitMasterBuild("R1", "m0", validAllocation, validFreePoint);
+      await submitMasterBuild("R1", "m0", validAllocation, validFreePoint, validSkillSelections);
 
       const newAllocation: readonly LevelAllocation[] = [{ levelId: "fighter", level: 4 }];
-      const result = await submitMasterBuild("R1", "m0", newAllocation, "body");
+      // Fighter LV4: 2 initial (required + 1 free) + 3 level-up = 5
+      const fighterSkills = [
+        {
+          classId: "fighter",
+          classLevel: 4,
+          selectedSkillIds: [
+            "ftr-martial-way",
+            "ftr-snake-bite",
+            "ftr-martial-heart",
+            "ftr-unyielding",
+            "ftr-penetrating-force",
+          ],
+        },
+      ];
+      const result = await submitMasterBuild("R1", "m0", newAllocation, "body", fighterSkills);
 
       expect(result.success).toBe(true);
       const data = JSON.parse(getHash("game:R1:chardata").get("m0")!);
@@ -194,23 +244,29 @@ describe("prepManager", () => {
     });
 
     it("rejects unknown character", async () => {
-      const result = await submitMasterBuild("R1", "nobody", validAllocation, validFreePoint);
+      const result = await submitMasterBuild("R1", "nobody", validAllocation, validFreePoint, []);
 
       expect(result.success).toBe(false);
       expect(result.error).toContain("不在準備階段");
     });
 
     it("rejects already-ready character", async () => {
-      await submitMasterBuild("R1", "m0", validAllocation, validFreePoint);
+      await submitMasterBuild("R1", "m0", validAllocation, validFreePoint, validSkillSelections);
       await confirmReady("R1", "m0");
 
-      const result = await submitMasterBuild("R1", "m0", validAllocation, validFreePoint);
+      const result = await submitMasterBuild(
+        "R1",
+        "m0",
+        validAllocation,
+        validFreePoint,
+        validSkillSelections,
+      );
       expect(result.success).toBe(false);
       expect(result.error).toContain("已確認就緒");
     });
 
     it("rejects invalid allocation (empty)", async () => {
-      const result = await submitMasterBuild("R1", "m0", [], validFreePoint);
+      const result = await submitMasterBuild("R1", "m0", [], validFreePoint, []);
 
       expect(result.success).toBe(false);
       expect(result.error).toContain("至少需要");
@@ -218,7 +274,7 @@ describe("prepManager", () => {
 
     it("rejects invalid allocation (wrong total)", async () => {
       const badAllocation: readonly LevelAllocation[] = [{ levelId: "magician", level: 2 }];
-      const result = await submitMasterBuild("R1", "m0", badAllocation, validFreePoint);
+      const result = await submitMasterBuild("R1", "m0", badAllocation, validFreePoint, []);
 
       expect(result.success).toBe(false);
       expect(result.error).toContain("等級總和");
@@ -226,7 +282,7 @@ describe("prepManager", () => {
 
     it("rejects unknown levelId", async () => {
       const badAllocation = [{ levelId: "ninja" as never, level: 4 }];
-      const result = await submitMasterBuild("R1", "m0", badAllocation, validFreePoint);
+      const result = await submitMasterBuild("R1", "m0", badAllocation, validFreePoint, []);
 
       expect(result.success).toBe(false);
       expect(result.error).toContain("未知的級別");
@@ -239,7 +295,7 @@ describe("prepManager", () => {
     });
 
     it("sets status to ready after submission", async () => {
-      await submitMasterBuild("R1", "m0", validAllocation, validFreePoint);
+      await submitMasterBuild("R1", "m0", validAllocation, validFreePoint, validSkillSelections);
       await confirmReady("R1", "m0");
 
       expect(getHash("game:R1:prep").get("m0")).toBe("ready:master");
@@ -247,7 +303,7 @@ describe("prepManager", () => {
 
     it("returns allReady=true when all players are ready", async () => {
       // twoGroups: m0 pending, s0 ready, npc-master-1 ready, npc-servant-1 ready
-      await submitMasterBuild("R1", "m0", validAllocation, validFreePoint);
+      await submitMasterBuild("R1", "m0", validAllocation, validFreePoint, validSkillSelections);
       const result = await confirmReady("R1", "m0");
 
       expect(result.success).toBe(true);
@@ -258,7 +314,7 @@ describe("prepManager", () => {
     it("returns allReady=false when some players not ready", async () => {
       await initializePrep("R2", threeGroups);
       // m0 and m1 both pending. Submit + confirm only m0
-      await submitMasterBuild("R2", "m0", validAllocation, validFreePoint);
+      await submitMasterBuild("R2", "m0", validAllocation, validFreePoint, validSkillSelections);
       const result = await confirmReady("R2", "m0");
 
       expect(result.success).toBe(true);
@@ -293,7 +349,7 @@ describe("prepManager", () => {
 
     it("reflects status changes", async () => {
       await initializePrep("R1", twoGroups);
-      await submitMasterBuild("R1", "m0", validAllocation, validFreePoint);
+      await submitMasterBuild("R1", "m0", validAllocation, validFreePoint, validSkillSelections);
       const state = await getPrepState("R1");
 
       const m0 = state.find((p) => p.characterId === "m0");
@@ -309,7 +365,7 @@ describe("prepManager", () => {
 
     it("returns stored chardata", async () => {
       await initializePrep("R1", twoGroups);
-      await submitMasterBuild("R1", "m0", validAllocation, validFreePoint);
+      await submitMasterBuild("R1", "m0", validAllocation, validFreePoint, validSkillSelections);
 
       const data = await getCharacterData("R1", "m0");
       expect(data).not.toBeNull();

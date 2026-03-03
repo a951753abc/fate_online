@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import type {
   PrepConfig,
   PrepSubmitPayload,
@@ -6,7 +6,10 @@ import type {
   PrepStatePayload,
   PrepStatus,
   MasterLevelView,
+  ClassAcquisitionView,
 } from "../../types/protocol.js";
+import { computeExpectedSkillCount } from "../../utils/skillUtils.js";
+import { SkillSelectionPanel } from "./SkillSelectionPanel.js";
 import "./MasterCreation.css";
 
 type AbilityKey = PrepSubmitPayload["freePoint"];
@@ -36,7 +39,7 @@ interface SelectedLevel {
   readonly level: number;
 }
 
-type CreationStep = "starting" | "upgrade";
+type CreationStep = "starting" | "upgrade" | "skills";
 
 interface MasterCreationProps {
   readonly prepConfig: PrepConfig;
@@ -60,6 +63,9 @@ export function MasterCreation({
   const [selected, setSelected] = useState<SelectedLevel[]>([]);
   const [freePoint, setFreePoint] = useState<AbilityKey>("body");
   const [step, setStep] = useState<CreationStep>("starting");
+  const [skillSelections, setSkillSelections] = useState<
+    Readonly<Record<string, readonly string[]>>
+  >({});
 
   const isReady =
     prepState?.players.find((p) => p.characterId === myCharacterId)?.status === "ready";
@@ -77,10 +83,37 @@ export function MasterCreation({
     return map;
   }, [prepConfig.availableLevels]);
 
+  const acquisitionMap = useMemo(() => {
+    const map = new Map<string, ClassAcquisitionView>();
+    for (const acq of prepConfig.classAcquisitions) {
+      map.set(acq.classId, acq);
+    }
+    return map;
+  }, [prepConfig.classAcquisitions]);
+
   const canConfirmStarting = step === "starting" && selected.length > 0 && remaining === 0;
-  const canSubmit = step === "upgrade" && remaining === 0;
+  const canAdvanceToSkills = step === "upgrade" && remaining === 0;
   const hasStats = buildResult?.success && buildResult.stats;
-  const locked = isReady || step === "upgrade";
+  const locked = isReady || step === "upgrade" || step === "skills";
+
+  // Check if all skill selections are complete
+  const allSkillsComplete = useMemo(() => {
+    if (step !== "skills") return false;
+    for (const s of selected) {
+      const acq = acquisitionMap.get(s.id);
+      if (!acq) return false;
+      const skills = skillSelections[s.id] ?? [];
+      const expected = computeExpectedSkillCount(acq, s.level);
+      if (skills.length !== expected) return false;
+    }
+    return true;
+  }, [step, selected, acquisitionMap, skillSelections]);
+
+  const canSubmit = step === "skills" && allSkillsComplete;
+
+  const handleSkillChange = useCallback((classId: string, skillIds: readonly string[]) => {
+    setSkillSelections((prev) => ({ ...prev, [classId]: skillIds }));
+  }, []);
 
   // Servant waiting view
   if (myRole === "servant") {
@@ -132,6 +165,16 @@ export function MasterCreation({
     }
   };
 
+  const handleAdvanceToSkills = () => {
+    // Initialize empty skill selections for each class
+    const initial: Record<string, readonly string[]> = {};
+    for (const s of selected) {
+      initial[s.id] = skillSelections[s.id] ?? [];
+    }
+    setSkillSelections(initial);
+    setStep("skills");
+  };
+
   const handleResetUpgrade = () => {
     const startingTotal = prepConfig.startingPoints;
     let pointsToRemove = totalAllocated - startingTotal;
@@ -148,12 +191,22 @@ export function MasterCreation({
       return [s, ...acc];
     }, []);
     setSelected(reverted);
+    setSkillSelections({});
     setStep("starting");
+  };
+
+  const handleBackToUpgrade = () => {
+    setStep("upgrade");
   };
 
   const handleSubmit = () => {
     const allocation = selected.map((s) => ({ levelId: s.id, level: s.level }));
-    onSubmit({ allocation, freePoint });
+    const selections = selected.map((s) => ({
+      classId: s.id,
+      classLevel: s.level,
+      selectedSkillIds: [...(skillSelections[s.id] ?? [])],
+    }));
+    onSubmit({ allocation, freePoint, skillSelections: selections });
   };
 
   return (
@@ -169,15 +222,24 @@ export function MasterCreation({
         <div className="mc-step">
           <span className={`mc-step-num ${step === "starting" ? "active" : "done"}`}>1</span>
           <span className={`mc-step-label ${step === "starting" ? "active" : ""}`}>
-            {`Step 1: 起始配點（${prepConfig.startingPoints} 等）`}
+            {`起始配點（${prepConfig.startingPoints} 等）`}
           </span>
         </div>
-        <div className={`mc-step-line ${step === "upgrade" ? "done" : ""}`} />
+        <div className={`mc-step-line ${step !== "starting" ? "done" : ""}`} />
         <div className="mc-step">
-          <span className={`mc-step-num ${step === "upgrade" ? "active" : ""}`}>2</span>
-          <span className={`mc-step-label ${step === "upgrade" ? "active" : ""}`}>
-            {`Step 2: 升級（+${upgradeLevels}）`}
+          <span
+            className={`mc-step-num ${step === "upgrade" ? "active" : step === "skills" ? "done" : ""}`}
+          >
+            2
           </span>
+          <span className={`mc-step-label ${step === "upgrade" ? "active" : ""}`}>
+            {`升級（+${upgradeLevels}）`}
+          </span>
+        </div>
+        <div className={`mc-step-line ${step === "skills" ? "done" : ""}`} />
+        <div className="mc-step">
+          <span className={`mc-step-num ${step === "skills" ? "active" : ""}`}>3</span>
+          <span className={`mc-step-label ${step === "skills" ? "active" : ""}`}>技能選擇</span>
         </div>
       </div>
 
@@ -332,10 +394,47 @@ export function MasterCreation({
           <button onClick={handleResetUpgrade} className="mc-btn mc-btn-secondary">
             重新選擇
           </button>
-          <button onClick={handleSubmit} disabled={!canSubmit} className="mc-btn mc-btn-confirm">
-            送出
+          <button
+            onClick={handleAdvanceToSkills}
+            disabled={!canAdvanceToSkills}
+            className="mc-btn mc-btn-confirm"
+          >
+            下一步：技能選擇
           </button>
         </div>
+      )}
+
+      {/* Step 3: Skill Selection */}
+      {step === "skills" && !isReady && (
+        <>
+          {selected.map((s) => {
+            const acq = acquisitionMap.get(s.id);
+            const classSkills = prepConfig.classSkills[s.id] ?? [];
+            if (!acq) return null;
+            const def = levelMap.get(s.id);
+            return (
+              <SkillSelectionPanel
+                key={s.id}
+                classId={s.id}
+                classDisplayName={def?.nameJa ?? s.id}
+                classLevel={s.level}
+                skills={classSkills}
+                acquisition={acq}
+                selectedSkillIds={skillSelections[s.id] ?? []}
+                onSelectionChange={handleSkillChange}
+              />
+            );
+          })}
+
+          <div className="mc-actions">
+            <button onClick={handleBackToUpgrade} className="mc-btn mc-btn-secondary">
+              返回升級
+            </button>
+            <button onClick={handleSubmit} disabled={!canSubmit} className="mc-btn mc-btn-confirm">
+              送出
+            </button>
+          </div>
+        </>
       )}
 
       {/* Ready button (after server confirms build) */}

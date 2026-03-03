@@ -30,6 +30,10 @@ import {
 } from "../game/initializeGame.js";
 import { initializePrep } from "../game/prepManager.js";
 import { getAvailableLevels, DEFAULT_LEVEL_CONFIG } from "../game/character/masterLevels.js";
+import {
+  buildAllClassSkillViews,
+  buildAllClassAcquisitionViews,
+} from "../game/character/skills/prepSkillDataBuilder.js";
 import type { NightState } from "../game/types.js";
 import type { PrepConfig, MasterLevelView } from "../shared/protocol.js";
 
@@ -47,6 +51,8 @@ const PREP_CONFIG: PrepConfig = Object.freeze({
       }),
     ),
   ) as readonly MasterLevelView[],
+  classSkills: buildAllClassSkillViews(),
+  classAcquisitions: buildAllClassAcquisitionViews(),
 });
 
 // Track disconnect timers for reconnection grace period

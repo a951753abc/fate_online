@@ -1,10 +1,17 @@
 import { getRedis } from "../db/redis.js";
 import type { GroupState } from "./types.js";
-import type { AbilityStatKey, LevelAllocation } from "./character/masterTypes.js";
+import type { AbilityStatKey, LevelAllocation, MasterLevelId } from "./character/masterTypes.js";
 import type { ComputedStats } from "./character/masterTypes.js";
-import type { PrepPlayerState, PrepStatus } from "../shared/protocol.js";
+import type { PrepPlayerState, PrepStatus, SkillSelectionPayload } from "../shared/protocol.js";
+import type { SkillSelection } from "./character/skills/types.js";
 import { validateAllocation, computeAllStats } from "./character/masterStats.js";
 import { DEFAULT_LEVEL_CONFIG } from "./character/masterLevels.js";
+import { validateSkillSelection } from "./character/skills/skillValidation.js";
+import {
+  getClassSkillAcquisition,
+  computeExpectedSkillCount,
+} from "./character/skills/acquisitionRules.js";
+import { getClassNormalSkills } from "./character/skills/index.js";
 
 // Redis key helpers
 const prepKey = (code: string) => `game:${code}:prep`;
@@ -35,22 +42,76 @@ export interface CharacterData {
   readonly allocation: readonly LevelAllocation[];
   readonly freePoint: AbilityStatKey;
   readonly stats: ComputedStats;
+  readonly skillSelections: readonly SkillSelection[];
 }
 
 export interface SubmitResult {
   readonly success: boolean;
   readonly error?: string;
   readonly stats?: ComputedStats;
+  readonly players?: readonly PrepPlayerState[];
+}
+
+// --- NPC Auto Skill Selection ---
+
+/**
+ * 為 NPC 自動生成技能選擇（簡單策略：滿足初期步驟 + 取前 N 個非額外技能）
+ */
+function generateNpcSkillSelection(classId: MasterLevelId, classLevel: number): SkillSelection {
+  const acq = getClassSkillAcquisition(classId);
+  const normalSkills = getClassNormalSkills(classId);
+  const totalNeeded = computeExpectedSkillCount(classId, classLevel);
+  const selected: string[] = [];
+  const selectedSet = new Set<string>();
+
+  const addSkill = (id: string) => {
+    if (!selectedSet.has(id)) {
+      selectedSet.add(id);
+      selected.push(id);
+    }
+  };
+
+  // 按照初期步驟挑選
+  for (const step of acq.initialSteps) {
+    switch (step.type) {
+      case "required":
+        for (const sid of step.skillIds ?? []) addSkill(sid);
+        break;
+      case "choose_one":
+        // 選第一個選項
+        if (step.skillIds && step.skillIds.length > 0) addSkill(step.skillIds[0]);
+        break;
+      case "free":
+        // 之後填充
+        break;
+    }
+  }
+
+  // 用非額外技能填充剩餘位置
+  for (const skill of normalSkills) {
+    if (selected.length >= totalNeeded) break;
+    addSkill(skill.id);
+  }
+
+  return Object.freeze({
+    classId,
+    classLevel,
+    selectedSkillIds: Object.freeze(selected),
+  }) as SkillSelection;
 }
 
 // Pre-compute NPC master data (always magician LV{gameLevel}, freePoint: reason)
 const NPC_MASTER_ALLOCATION: readonly LevelAllocation[] = Object.freeze([
   { levelId: "magician", level: DEFAULT_LEVEL_CONFIG.gameLevel },
 ]);
+const NPC_MASTER_SKILLS: readonly SkillSelection[] = Object.freeze([
+  generateNpcSkillSelection("magician", DEFAULT_LEVEL_CONFIG.gameLevel),
+]);
 const NPC_MASTER_DATA: CharacterData = Object.freeze({
   allocation: NPC_MASTER_ALLOCATION,
   freePoint: "reason",
   stats: computeAllStats(NPC_MASTER_ALLOCATION, "reason"),
+  skillSelections: NPC_MASTER_SKILLS,
 });
 const NPC_MASTER_DATA_JSON = JSON.stringify(NPC_MASTER_DATA);
 
@@ -90,6 +151,7 @@ export async function submitMasterBuild(
   characterId: string,
   allocation: readonly LevelAllocation[],
   freePoint: AbilityStatKey,
+  skillSelections: readonly SkillSelectionPayload[],
 ): Promise<SubmitResult> {
   const redis = getRedis();
 
@@ -109,17 +171,83 @@ export async function submitMasterBuild(
     return Object.freeze({ success: false, error: validationError });
   }
 
+  // Validate skill selections match allocation
+  const allocMap = new Map<string, number>(allocation.map((a) => [a.levelId, a.level]));
+  if (skillSelections.length !== allocation.length) {
+    return Object.freeze({
+      success: false,
+      error: `技能選擇數量不符：需要 ${allocation.length} 個級別，但收到 ${skillSelections.length} 個`,
+    });
+  }
+
+  for (const sel of skillSelections) {
+    if (!allocMap.has(sel.classId)) {
+      return Object.freeze({
+        success: false,
+        error: `技能選擇的級別 ${sel.classId} 不在等級配置中`,
+      });
+    }
+
+    // Validate class level matches allocation
+    const allocLevel = allocMap.get(sel.classId)!;
+    if (sel.classLevel !== allocLevel) {
+      return Object.freeze({
+        success: false,
+        error: `技能選擇的等級不符：${sel.classId} 應為 LV${allocLevel}，但收到 LV${sel.classLevel}`,
+      });
+    }
+
+    // Validate skill selection using the existing validation system
+    const classId = sel.classId as MasterLevelId;
+    const skillValidation = validateSkillSelection({
+      classId,
+      classLevel: sel.classLevel,
+      selectedSkillIds: sel.selectedSkillIds,
+    });
+    if (!skillValidation.valid) {
+      const firstError = skillValidation.errors[0];
+      return Object.freeze({
+        success: false,
+        error: `技能驗證失敗（${sel.classId}）：${firstError.message}`,
+      });
+    }
+  }
+
   // Compute stats
   const stats = computeAllStats(allocation, freePoint);
 
-  // Store
-  const charData: CharacterData = { allocation, freePoint, stats };
+  // Build SkillSelection array
+  const validatedSelections: readonly SkillSelection[] = Object.freeze(
+    skillSelections.map((sel) =>
+      Object.freeze({
+        classId: sel.classId as MasterLevelId,
+        classLevel: sel.classLevel,
+        selectedSkillIds: Object.freeze([...sel.selectedSkillIds]),
+      }),
+    ),
+  );
+
+  // Store + read updated prep state in one pipeline
+  const charData: CharacterData = {
+    allocation,
+    freePoint,
+    stats,
+    skillSelections: validatedSelections,
+  };
+  const updatedStatus = rawStatus("submitted", role);
   const pipeline = redis.pipeline();
   pipeline.hset(chardataKey(roomCode), characterId, JSON.stringify(charData));
-  pipeline.hset(prepKey(roomCode), characterId, rawStatus("submitted", role));
-  await pipeline.exec();
+  pipeline.hset(prepKey(roomCode), characterId, updatedStatus);
+  pipeline.hgetall(prepKey(roomCode));
+  const results = await pipeline.exec();
 
-  return Object.freeze({ success: true, stats });
+  // Pipeline result [2] is the hgetall — build player list from it
+  const prepRaw = (results?.[2]?.[1] ?? {}) as Record<string, string>;
+  // Ensure our write is reflected (pipeline reads may see pre-write state)
+  prepRaw[characterId] = updatedStatus;
+  const players = buildPrepPlayersFromSnapshot(prepRaw);
+
+  return Object.freeze({ success: true, stats, players });
 }
 
 // === Confirm Ready ===

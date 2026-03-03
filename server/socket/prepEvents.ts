@@ -2,10 +2,10 @@ import type { Server, Socket } from "socket.io";
 import { ClientEvents, ServerEvents } from "./events.js";
 import { getPlayerRoom } from "../room/roomManager.js";
 import { getNightPhase, getCharacter, setGameStatus } from "../game/gameStateManager.js";
-import { submitMasterBuild, confirmReady, getPrepState } from "../game/prepManager.js";
+import { submitMasterBuild, confirmReady } from "../game/prepManager.js";
 import { NightCycleEngine } from "../game/nightCycle.js";
 import { registerGame } from "../game/activeGames.js";
-import type { PrepSubmitPayload } from "../shared/protocol.js";
+import type { PrepSubmitPayload, SkillSelectionPayload } from "../shared/protocol.js";
 import type { AbilityStatKey, LevelAllocation } from "../game/character/masterTypes.js";
 
 export function registerPrepEvents(io: Server, socket: Socket): void {
@@ -35,13 +35,21 @@ export function registerPrepEvents(io: Server, socket: Socket): void {
 
       const allocation = payload.allocation as readonly LevelAllocation[];
       const freePoint = payload.freePoint as AbilityStatKey;
+      const skillSelections = (payload.skillSelections ?? []) as readonly SkillSelectionPayload[];
 
-      const result = await submitMasterBuild(code, playerId, allocation, freePoint);
+      const result = await submitMasterBuild(
+        code,
+        playerId,
+        allocation,
+        freePoint,
+        skillSelections,
+      );
       socket.emit(ServerEvents.PREP_RESULT, result);
 
-      // Broadcast updated prep state
-      const prepState = await getPrepState(code);
-      io.to(code).emit(ServerEvents.PREP_STATE, { players: prepState });
+      // Broadcast updated prep state (reuses data already read by submitMasterBuild)
+      if (result.players) {
+        io.to(code).emit(ServerEvents.PREP_STATE, { players: result.players });
+      }
     } catch (err) {
       console.error("[prep:submit] error:", err);
       socket.emit(ServerEvents.PREP_RESULT, { success: false, error: "提交處理失敗" });

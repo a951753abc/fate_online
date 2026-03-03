@@ -155,16 +155,60 @@ export interface MasterLevelView {
   };
 }
 
+// --- Skill Views (client-facing) ---
+
+export interface SkillPrereqView {
+  readonly type: string;
+  readonly description: string;
+}
+
+export interface SkillView {
+  readonly id: string;
+  readonly classId: string;
+  readonly nameJa: string;
+  readonly nameCht: string;
+  readonly trigger: string;
+  readonly attackDomain?: string;
+  readonly isExtra: boolean;
+  readonly costDescription: string;
+  readonly effectDescription: string;
+  readonly tpReward: number;
+  readonly prerequisites: readonly SkillPrereqView[];
+}
+
+export interface InitialStepView {
+  readonly type: "required" | "choose_one" | "free";
+  readonly skillIds?: readonly string[];
+  readonly count?: number;
+  readonly label?: string;
+}
+
+export interface ClassAcquisitionView {
+  readonly classId: string;
+  readonly initialSteps: readonly InitialStepView[];
+  readonly perLevelUpCount: number;
+  readonly bonusLevels: readonly number[];
+}
+
 export interface PrepConfig {
   readonly startingPoints: number;
   readonly gameLevel: number;
   readonly maxClasses: number;
   readonly availableLevels: readonly MasterLevelView[];
+  readonly classSkills: Readonly<Record<string, readonly SkillView[]>>;
+  readonly classAcquisitions: readonly ClassAcquisitionView[];
+}
+
+export interface SkillSelectionPayload {
+  readonly classId: string;
+  readonly classLevel: number;
+  readonly selectedSkillIds: readonly string[];
 }
 
 export interface PrepSubmitPayload {
   readonly allocation: readonly { readonly levelId: string; readonly level: number }[];
   readonly freePoint: "body" | "perception" | "reason" | "will";
+  readonly skillSelections: readonly SkillSelectionPayload[];
 }
 
 export interface PrepResultPayload {

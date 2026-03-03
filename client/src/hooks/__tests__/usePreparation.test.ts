@@ -106,12 +106,14 @@ describe("usePreparation", () => {
       result.current.submitBuild({
         allocation: [{ levelId: "magician", level: 4 }],
         freePoint: "reason",
+        skillSelections: [],
       });
     });
 
     expect(mockSocket.emit).toHaveBeenCalledWith("prep:submit", {
       allocation: [{ levelId: "magician", level: 4 }],
       freePoint: "reason",
+      skillSelections: [],
     });
   });
 
@@ -122,6 +124,7 @@ describe("usePreparation", () => {
       result.current.submitBuild({
         allocation: [{ levelId: "magician", level: 4 }],
         freePoint: "reason",
+        skillSelections: [],
       });
     });
 
