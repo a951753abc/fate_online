@@ -1,82 +1,42 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
-import type { PrepConfig, PrepSubmitPayload, PrepResultPayload } from "../types/protocol.js";
+import { useState, useCallback, useMemo } from "react";
+import type { PrepSubmitPayload, PrepResultPayload } from "../types/protocol.js";
 import { MasterCreation } from "../components/game/MasterCreation.js";
+import { PREP_CONFIG } from "@game/prepConfig.js";
+import { validateAndComputeBuild } from "@game/prepValidation.js";
+import type { LevelAllocation, AbilityStatKey } from "@game/character/masterTypes.js";
 
 type CreatorPhase = "config" | "creating" | "done";
 
 export function CreatorPage() {
   const [phase, setPhase] = useState<CreatorPhase>("config");
-  const [baseConfig, setBaseConfig] = useState<PrepConfig | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  // Configurable parameters
-  const [startingPoints, setStartingPoints] = useState(3);
-  const [gameLevel, setGameLevel] = useState(4);
-  const [maxClasses, setMaxClasses] = useState(3);
+  // Configurable parameters (defaults from bundled config)
+  const [startingPoints, setStartingPoints] = useState(PREP_CONFIG.startingPoints);
+  const [gameLevel, setGameLevel] = useState(PREP_CONFIG.gameLevel);
+  const [maxClasses, setMaxClasses] = useState(PREP_CONFIG.maxClasses);
 
   // Result state
   const [buildResult, setBuildResult] = useState<PrepResultPayload | null>(null);
   const [lastPayload, setLastPayload] = useState<PrepSubmitPayload | null>(null);
 
-  // Fetch default config on mount
-  useEffect(() => {
-    const controller = new AbortController();
-    fetch("/api/creator/config", { signal: controller.signal })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data: PrepConfig) => {
-        setBaseConfig(data);
-        setStartingPoints(data.startingPoints);
-        setGameLevel(data.gameLevel);
-        setMaxClasses(data.maxClasses);
-        setLoading(false);
-      })
-      .catch((err) => {
-        if ((err as DOMException).name === "AbortError") return;
-        setError(`無法載入配置：${String(err)}`);
-        setLoading(false);
-      });
-    return () => controller.abort();
-  }, []);
-
   // Build effective config with user overrides
-  const effectiveConfig: PrepConfig | null = useMemo(
-    () =>
-      baseConfig
-        ? {
-            ...baseConfig,
-            startingPoints,
-            gameLevel,
-            maxClasses,
-          }
-        : null,
-    [baseConfig, startingPoints, gameLevel, maxClasses],
+  const effectiveConfig = useMemo(
+    () => ({ ...PREP_CONFIG, startingPoints, gameLevel, maxClasses }),
+    [startingPoints, gameLevel, maxClasses],
   );
 
   const handleSubmit = useCallback(
-    async (payload: PrepSubmitPayload) => {
+    (payload: PrepSubmitPayload) => {
       setLastPayload(payload);
-      try {
-        const res = await fetch("/api/creator/submit", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            allocation: payload.allocation,
-            freePoint: payload.freePoint,
-            skillSelections: payload.skillSelections,
-            config: { startingPoints, gameLevel, maxClasses },
-          }),
-        });
-        const result: PrepResultPayload = await res.json();
-        setBuildResult(result);
-        if (result.success) {
-          setPhase("done");
-        }
-      } catch (err) {
-        setBuildResult({ success: false, error: `提交失敗：${String(err)}` });
+      const result = validateAndComputeBuild(
+        payload.allocation as unknown as readonly LevelAllocation[],
+        payload.freePoint as AbilityStatKey,
+        payload.skillSelections,
+        { startingPoints, gameLevel, maxClasses },
+      );
+      setBuildResult(result);
+      if (result.success) {
+        setPhase("done");
       }
     },
     [startingPoints, gameLevel, maxClasses],
@@ -107,13 +67,6 @@ export function CreatorPage() {
     setBuildResult(null);
     setLastPayload(null);
   }, []);
-
-  if (loading) {
-    return <div className="creator-page">載入中...</div>;
-  }
-  if (error || !effectiveConfig) {
-    return <div className="creator-page creator-error">{error ?? "配置載入失敗"}</div>;
-  }
 
   return (
     <div className="creator-page">

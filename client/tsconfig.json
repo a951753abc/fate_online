@@ -11,7 +11,11 @@
     "resolveJsonModule": true,
     "jsx": "react-jsx",
     "isolatedModules": true,
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "@game/*": ["../server/game/*"],
+      "@server-shared/*": ["../server/shared/*"]
+    }
   },
-  "include": ["src"]
+  "include": ["src", "../server/game", "../server/shared"]
 }
