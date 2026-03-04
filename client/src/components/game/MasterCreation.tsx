@@ -282,12 +282,27 @@ export function MasterCreation({
   };
 
   const handleUpgradeSelect = (id: string) => {
+    if (remaining <= 0) return;
     const exists = selected.find((s) => s.id === id);
     if (exists) {
       setSelected(selected.map((s) => (s.id === id ? { ...s, level: s.level + 1 } : s)));
     } else if (selected.length < prepConfig.maxClasses) {
       setSelected([...selected, { id, level: 1 }]);
     }
+  };
+
+  const adjustUpgradeLevel = (id: string, delta: number) => {
+    const minLevel = startingLevels[id] ?? 0;
+    setSelected((prev) => {
+      const updated = prev.map((s) => {
+        if (s.id !== id) return s;
+        const newLevel = s.level + delta;
+        if (newLevel < minLevel) return s;
+        if (delta > 0 && remaining <= 0) return s;
+        return { ...s, level: newLevel };
+      });
+      return updated.filter((s) => s.level > 0);
+    });
   };
 
   const handleAdvanceToSkills = () => {
@@ -301,24 +316,16 @@ export function MasterCreation({
   };
 
   const handleResetUpgrade = () => {
-    const startingTotal = prepConfig.startingPoints;
-    let pointsToRemove = totalAllocated - startingTotal;
-    const reverted = [...selected].reverse().reduce<SelectedLevel[]>((acc, s) => {
-      if (pointsToRemove > 0) {
-        const reduce = Math.min(pointsToRemove, s.level - (s.level > 1 ? 1 : 0));
-        if (s.level - reduce < 1) {
-          pointsToRemove -= s.level;
-          return acc;
-        }
-        pointsToRemove -= reduce;
-        return [{ ...s, level: s.level - reduce }, ...acc];
-      }
-      return [s, ...acc];
-    }, []);
-    setSelected(reverted);
+    setSelected(Object.entries(startingLevels).map(([id, level]) => ({ id, level })));
     setSkillSelections({});
     setSkillConfigs({});
+  };
+
+  const handleBackToStarting = () => {
+    setSelected([]);
     setStartingLevels({});
+    setSkillSelections({});
+    setSkillConfigs({});
     setStep("starting");
   };
 
@@ -594,19 +601,38 @@ export function MasterCreation({
         </section>
       )}
 
-      {/* Step 2: Current Allocation Summary */}
+      {/* Step 2: Current Allocation (editable) */}
       {step === "upgrade" && (
         <section className="mc-section">
-          <h3 className="mc-section-title">最終等級配置</h3>
-          {selected.map((s) => {
-            const def = levelMap.get(s.id);
-            return (
-              <div key={s.id} className="mc-summary-row">
-                <span className="mc-summary-name">{def?.nameJa ?? s.id}</span>
-                <span className="mc-summary-level">LV{s.level}</span>
-              </div>
-            );
-          })}
+          <h3 className="mc-section-title">目前等級配置</h3>
+          <div className="mc-alloc-list">
+            {selected.map((s) => {
+              const def = levelMap.get(s.id);
+              const min = startingLevels[s.id] ?? 0;
+              return (
+                <div key={s.id} className="mc-alloc-row">
+                  <span className="mc-alloc-name">{def?.nameJa ?? s.id}</span>
+                  <div className="mc-alloc-controls">
+                    <button
+                      onClick={() => adjustUpgradeLevel(s.id, -1)}
+                      disabled={s.level <= min}
+                      className="mc-pm-btn"
+                    >
+                      -
+                    </button>
+                    <span className="mc-alloc-level">LV{s.level}</span>
+                    <button
+                      onClick={() => adjustUpgradeLevel(s.id, 1)}
+                      disabled={remaining <= 0}
+                      className="mc-pm-btn"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
           <div className="mc-summary-free">自由配點: {ABILITY_LABELS[freePoint]} +1</div>
         </section>
       )}
@@ -614,8 +640,11 @@ export function MasterCreation({
       {/* Step 2: Actions */}
       {step === "upgrade" && !isReady && (
         <div className="mc-actions">
+          <button onClick={handleBackToStarting} className="mc-btn mc-btn-secondary">
+            返回起始配點
+          </button>
           <button onClick={handleResetUpgrade} className="mc-btn mc-btn-secondary">
-            重新選擇
+            重置升級
           </button>
           <button
             onClick={handleAdvanceToSkills}

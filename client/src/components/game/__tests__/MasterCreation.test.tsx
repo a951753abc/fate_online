@@ -183,7 +183,7 @@ describe("MasterCreation", () => {
     it("shows final allocation summary", () => {
       renderMasterCreation();
       completeStep1();
-      expect(screen.getByText("最終等級配置")).toBeInTheDocument();
+      expect(screen.getByText("目前等級配置")).toBeInTheDocument();
     });
 
     it("upgrade existing class: +1 to selected", () => {
@@ -244,10 +244,25 @@ describe("MasterCreation", () => {
       } satisfies PrepSubmitPayload);
     });
 
-    it("reset returns to step 1", () => {
+    it("reset upgrade reverts to starting levels", () => {
       renderMasterCreation();
       completeStep1();
-      fireEvent.click(screen.getByText("重新選擇"));
+      // Add an upgrade point — find the non-disabled 魔術師 card in the upgrade grid
+      const cards = screen.getAllByText("魔術師");
+      const upgradeCard = cards
+        .map((el) => el.closest("button"))
+        .find((btn) => btn && !btn.disabled);
+      expect(upgradeCard).toBeTruthy();
+      fireEvent.click(upgradeCard!);
+      fireEvent.click(screen.getByText("重置升級"));
+      // Should stay in step 2 and revert to starting allocation
+      expect(screen.getByText(/選擇升級/)).toBeInTheDocument();
+    });
+
+    it("back to starting returns to step 1", () => {
+      renderMasterCreation();
+      completeStep1();
+      fireEvent.click(screen.getByText("返回起始配點"));
       expect(screen.getByText(/起始配點（3 等）/)).toBeInTheDocument();
     });
 
