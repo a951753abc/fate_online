@@ -8,6 +8,7 @@ import type {
   FamiliarOptionView,
 } from "../../types/protocol.js";
 import { computeExpectedSkillCount } from "../../utils/skillUtils.js";
+import { MAGIC_ATTRIBUTE_LABELS } from "@server-shared/magicAttributes.js";
 
 // --- Trigger type labels ---
 
@@ -20,16 +21,6 @@ const TRIGGER_LABELS: Readonly<Record<string, string>> = {
   preparation: "準備",
   interrupt: "中斷",
   special: "特殊",
-};
-
-// --- Attribute labels (for config summary) ---
-
-const ATTRIBUTE_LABELS: Readonly<Record<string, string>> = {
-  earth: "地",
-  water: "水",
-  fire: "火",
-  wind: "風",
-  void: "空",
 };
 
 // --- Props ---
@@ -107,32 +98,35 @@ export function SkillSelectionPanel({
     return ids;
   }, [acquisition.initialSteps]);
 
-  // Count how many selected skills belong to initial steps
+  // Static: initial slots count (only depends on acquisition structure)
+  const initialSlotCount = useMemo(() => {
+    let count = 0;
+    for (const step of acquisition.initialSteps) {
+      switch (step.type) {
+        case "required":
+          count += step.skillIds?.length ?? 0;
+          break;
+        case "choose_one":
+          count += 1;
+          break;
+        case "free":
+          count += step.count ?? 0;
+          break;
+      }
+    }
+    return count;
+  }, [acquisition.initialSteps]);
+
+  // Dynamic: free slots remaining (depends on selection)
   const { freeSlots, remainingFree } = useMemo(() => {
     let initialPickedCount = 0;
     for (const id of selectedSkillIds) {
       if (allInitialStepSkillIds.has(id)) initialPickedCount++;
     }
-
-    // Initial slots = skills consumed by required + choose_one + free steps
-    let initialSlotCount = 0;
-    for (const step of acquisition.initialSteps) {
-      switch (step.type) {
-        case "required":
-          initialSlotCount += step.skillIds?.length ?? 0;
-          break;
-        case "choose_one":
-          initialSlotCount += 1;
-          break;
-        case "free":
-          initialSlotCount += step.count ?? 0;
-          break;
-      }
-    }
     const free = expectedTotal - initialSlotCount;
     const freePickedCount = selectedSkillIds.length - initialPickedCount;
     return { freeSlots: free, remainingFree: Math.max(0, free - freePickedCount) };
-  }, [selectedSkillIds, allInitialStepSkillIds, acquisition.initialSteps, expectedTotal]);
+  }, [selectedSkillIds, allInitialStepSkillIds, expectedTotal, initialSlotCount]);
 
   const isComplete = selectedSkillIds.length === expectedTotal;
 
@@ -393,7 +387,10 @@ function formatConfigSummary(
       if (!dist) return "";
       return Object.entries(dist)
         .filter(([, v]) => v > 0)
-        .map(([attr, val]) => `${ATTRIBUTE_LABELS[attr] ?? attr}${val}`)
+        .map(
+          ([attr, val]) =>
+            `${MAGIC_ATTRIBUTE_LABELS[attr as keyof typeof MAGIC_ATTRIBUTE_LABELS] ?? attr}${val}`,
+        )
         .join(" ");
     }
     case "familiar": {

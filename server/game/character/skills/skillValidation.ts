@@ -10,6 +10,10 @@ import { getClassSkillAcquisition, computeExpectedSkillCount } from "./acquisiti
 import { getClassSkills, findSkillDef } from "./index.js";
 import { findMysticCode } from "./mysticCodes.js";
 import { isValidSubChoice, getElementSubChoice, VALID_FAMILIAR_TYPES } from "./magicianConfigs.js";
+import {
+  getRequiredElementCount as getCompositionElementCount,
+  checkCompositionConflicts,
+} from "../../../shared/compositionRules.js";
 
 // --- 驗證結果 ---
 
@@ -92,14 +96,14 @@ function validateStep(
     }
     case "choose_one": {
       // 必須從指定選項中選擇恰好一個
-      const options = step.skillIds ?? [];
-      const chosen = selectedSkillIds.filter((id) => options.includes(id));
+      const optionSet = new Set(step.skillIds ?? []);
+      const chosen = selectedSkillIds.filter((id) => optionSet.has(id));
       if (chosen.length === 0) {
         errors.push(
           err(
             "MISSING_CHOICE",
-            `${step.label ?? "選擇"}: 必須從 [${options.join(", ")}] 中選擇一個`,
-            { options, classId },
+            `${step.label ?? "選擇"}: 必須從 [${[...optionSet].join(", ")}] 中選擇一個`,
+            { options: [...optionSet], classId },
           ),
         );
       } else if (chosen.length > 1) {
@@ -456,14 +460,8 @@ function validateComposition(
   const errors: ValidationError[] = [];
 
   // 決定預期要素數量
-  let expectedElementCount: number;
-  if (config.mode === "expand") {
-    expectedElementCount = 1;
-  } else if (skillId === "mag-item-creation" || skillId === "mag-mystic-eyes") {
-    expectedElementCount = 2; // 道具作成/魔眼保持 = 2 要素
-  } else {
-    expectedElementCount = 3; // 魔術構成 = 3 要素
-  }
+  const expectedElementCount =
+    config.mode === "expand" ? 1 : getCompositionElementCount(skillId as string);
 
   if (config.elements.length !== expectedElementCount) {
     errors.push(
@@ -525,61 +523,14 @@ function validateComposition(
   // --- 要素衝突規則 (新建模式才檢查完整構成) ---
   if (config.mode === "new") {
     const elementIds = new Set(config.elements.map((e) => e.elementSkillId));
-
-    // R1: 觸發類型互斥 — 準備/攻擊類型/進攻 三者最多出現一個
-    const triggerTypes: SkillId[] = [
-      "mag-element-prep" as SkillId,
-      "mag-element-attack-type" as SkillId,
-      "mag-element-offense" as SkillId,
-    ];
-    const selectedTriggers = triggerTypes.filter((t) => elementIds.has(t));
-    if (selectedTriggers.length > 1) {
-      errors.push(
-        err(
-          "COMPOSITION_TRIGGER_CONFLICT",
-          `準備/攻擊類型/進攻 三者最多選一個，但選了: ${selectedTriggers.join(", ")}`,
-          {
-            skillId,
-          },
-        ),
-      );
-    }
-
-    // R2: 傷害需搭配攻擊類型或進攻
-    if (elementIds.has("mag-element-damage" as SkillId)) {
-      if (
-        !elementIds.has("mag-element-attack-type" as SkillId) &&
-        !elementIds.has("mag-element-offense" as SkillId)
-      ) {
-        errors.push(
-          err("COMPOSITION_DAMAGE_NEEDS_ATTACK", `要素：傷害 須搭配攻擊類型或進攻`, { skillId }),
-        );
-      }
-    }
-
-    // R3 & R4: 防禦/增益需搭配其他輔助要素
-    const supportElements: SkillId[] = [
-      "mag-element-defense" as SkillId,
-      "mag-element-buff" as SkillId,
-      "mag-element-heal" as SkillId,
-      "mag-element-debuff" as SkillId,
-      "mag-element-status" as SkillId,
-    ];
-    const selectedSupport = supportElements.filter((s) => elementIds.has(s));
-
-    if (elementIds.has("mag-element-defense" as SkillId)) {
-      if (selectedSupport.filter((s) => s !== ("mag-element-defense" as SkillId)).length === 0) {
-        errors.push(
-          err("COMPOSITION_DEFENSE_NEEDS_SUPPORT", `要素：防禦 須搭配其他輔助要素`, { skillId }),
-        );
-      }
-    }
-    if (elementIds.has("mag-element-buff" as SkillId)) {
-      if (selectedSupport.filter((s) => s !== ("mag-element-buff" as SkillId)).length === 0) {
-        errors.push(
-          err("COMPOSITION_BUFF_NEEDS_SUPPORT", `要素：增益 須搭配其他輔助要素`, { skillId }),
-        );
-      }
+    const ruleCodeMap: Readonly<Record<string, string>> = {
+      R1: "COMPOSITION_TRIGGER_CONFLICT",
+      R2: "COMPOSITION_DAMAGE_NEEDS_ATTACK",
+      R3: "COMPOSITION_DEFENSE_NEEDS_SUPPORT",
+      R4: "COMPOSITION_BUFF_NEEDS_SUPPORT",
+    };
+    for (const w of checkCompositionConflicts(elementIds)) {
+      errors.push(err(ruleCodeMap[w.rule] ?? w.rule, `要素：${w.message}`, { skillId }));
     }
   }
 

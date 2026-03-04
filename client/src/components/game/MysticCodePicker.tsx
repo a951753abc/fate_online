@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { MysticCodeView, SkillInstanceConfigPayload } from "../../types/protocol.js";
 
 interface MysticCodePickerProps {
@@ -16,8 +16,14 @@ export function MysticCodePicker({
 }: MysticCodePickerProps) {
   const [selected, setSelected] = useState<string>((existingConfig?.mysticCodeId as string) ?? "");
 
-  const consumables = mysticCodes.filter((mc) => mc.category === "consumable");
-  const equipment = mysticCodes.filter((mc) => mc.category === "equipment");
+  const { consumables, equipment } = useMemo(() => {
+    const c: MysticCodeView[] = [];
+    const e: MysticCodeView[] = [];
+    for (const mc of mysticCodes) {
+      (mc.category === "consumable" ? c : e).push(mc);
+    }
+    return { consumables: c, equipment: e };
+  }, [mysticCodes]);
 
   const handleConfirm = () => {
     if (!selected) return;

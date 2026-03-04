@@ -1,15 +1,7 @@
 import { useState, useMemo } from "react";
 import type { SkillInstanceConfigPayload } from "../../types/protocol.js";
-
-type MagicAttribute = "earth" | "water" | "fire" | "wind" | "void";
-
-const ATTRIBUTES: readonly { key: MagicAttribute; label: string }[] = [
-  { key: "earth", label: "地" },
-  { key: "water", label: "水" },
-  { key: "fire", label: "火" },
-  { key: "wind", label: "風" },
-  { key: "void", label: "空" },
-];
+import { MAGIC_ATTRIBUTES } from "@server-shared/magicAttributes.js";
+import type { MagicAttribute } from "@server-shared/magicAttributes.js";
 
 interface AttributeDistPanelProps {
   readonly classLevel: number;
@@ -92,7 +84,7 @@ export function AttributeDistPanel({
       </div>
 
       <div className="mc-attr-grid">
-        {ATTRIBUTES.map(({ key, label }) => {
+        {MAGIC_ATTRIBUTES.map(({ key, label }) => {
           const val = distribution[key];
           const isActive = val > 0;
           return (

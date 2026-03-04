@@ -4,6 +4,11 @@ import type {
   SkillInstanceConfigPayload,
   ElementSubChoiceView,
 } from "../../types/protocol.js";
+import {
+  getRequiredElementCount,
+  canExpandComposition,
+  checkCompositionConflicts,
+} from "@server-shared/compositionRules.js";
 
 interface CompositionElementEntry {
   readonly elementSkillId: string;
@@ -24,16 +29,6 @@ interface CompositionBuilderProps {
   readonly onCancel: () => void;
 }
 
-function getRequiredElementCount(skillId: string): number {
-  // 魔術構成: 3 elements, 道具作成/魔眼保持: 2 elements
-  if (skillId === "mag-magic-composition") return 3;
-  return 2; // mag-item-creation, mag-mystic-eyes
-}
-
-function canExpand(skillId: string): boolean {
-  return skillId === "mag-magic-composition";
-}
-
 export function CompositionBuilder({
   skillId,
   elements,
@@ -44,7 +39,7 @@ export function CompositionBuilder({
   onCancel,
 }: CompositionBuilderProps) {
   const requiredCount = getRequiredElementCount(skillId);
-  const allowExpand = canExpand(skillId) && existingCompositions.length > 0;
+  const allowExpand = canExpandComposition(skillId) && existingCompositions.length > 0;
 
   const [mode, setMode] = useState<"new" | "expand">(
     (existingConfig?.mode as "new" | "expand") ?? "new",
@@ -92,47 +87,7 @@ export function CompositionBuilder({
   // --- 要素衝突檢查 (R1~R4) ---
   const warnings = useMemo(() => {
     if (mode === "expand") return [];
-    const ids = selectedElementIds;
-    const warns: string[] = [];
-
-    // R1: 觸發類型互斥
-    const triggerTypes = ["mag-element-prep", "mag-element-attack-type", "mag-element-offense"];
-    const selectedTriggers = triggerTypes.filter((t) => ids.has(t));
-    if (selectedTriggers.length > 1) {
-      warns.push("準備/攻擊類型/進攻 三者最多選一個");
-    }
-
-    // R2: 傷害需搭配攻擊類型或進攻
-    if (ids.has("mag-element-damage")) {
-      if (!ids.has("mag-element-attack-type") && !ids.has("mag-element-offense")) {
-        warns.push("傷害 須搭配攻擊類型或進攻");
-      }
-    }
-
-    // R3: 防禦需搭配其他輔助要素
-    const supportElements = [
-      "mag-element-defense",
-      "mag-element-buff",
-      "mag-element-heal",
-      "mag-element-debuff",
-      "mag-element-status",
-    ];
-    const selectedSupport = supportElements.filter((s) => ids.has(s));
-
-    if (ids.has("mag-element-defense")) {
-      if (selectedSupport.filter((s) => s !== "mag-element-defense").length === 0) {
-        warns.push("防禦 須搭配其他輔助要素");
-      }
-    }
-
-    // R4: 增益需搭配其他輔助要素
-    if (ids.has("mag-element-buff")) {
-      if (selectedSupport.filter((s) => s !== "mag-element-buff").length === 0) {
-        warns.push("增益 須搭配其他輔助要素");
-      }
-    }
-
-    return warns;
+    return checkCompositionConflicts(selectedElementIds).map((w) => w.message);
   }, [selectedElementIds, mode]);
 
   const handleElementClick = (elementSkillId: string) => {

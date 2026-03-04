@@ -208,7 +208,7 @@ export function MasterCreation({
     (classId: string, skillId: string, instanceIndex: number) => {
       // Remove one occurrence of skillId from selectedSkillIds
       setSkillSelections((prev) => {
-        const ids = [...(prev[classId] ?? [])];
+        const ids = prev[classId] ?? [];
         let count = 0;
         const removeIdx = ids.findIndex((id) => {
           if (id !== skillId) return false;
@@ -216,15 +216,14 @@ export function MasterCreation({
           count++;
           return false;
         });
-        if (removeIdx >= 0) ids.splice(removeIdx, 1);
-        return { ...prev, [classId]: ids };
+        if (removeIdx < 0) return prev;
+        return { ...prev, [classId]: ids.filter((_, i) => i !== removeIdx) };
       });
 
       // Remove corresponding config
       setSkillConfigs((prev) => {
         const classConfs = { ...(prev[classId] ?? {}) };
-        const skillConfs = [...(classConfs[skillId] ?? [])];
-        skillConfs.splice(instanceIndex, 1);
+        const skillConfs = (classConfs[skillId] ?? []).filter((_, i) => i !== instanceIndex);
         if (skillConfs.length === 0) {
           const rest = Object.fromEntries(
             Object.entries(classConfs).filter(([k]) => k !== skillId),

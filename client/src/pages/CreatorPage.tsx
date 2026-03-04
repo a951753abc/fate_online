@@ -32,22 +32,23 @@ export function CreatorPage() {
         payload.allocation as unknown as readonly LevelAllocation[],
         payload.freePoint as AbilityStatKey,
         payload.skillSelections,
-        { startingPoints, gameLevel, maxClasses },
+        effectiveConfig,
       );
       setBuildResult(result);
       if (result.success) {
         setPhase("done");
       }
     },
-    [startingPoints, gameLevel, maxClasses],
+    [effectiveConfig],
   );
 
   const handleExportJson = useCallback(() => {
     if (!lastPayload || !buildResult?.success) return;
+    const { startingPoints: sp, gameLevel: gl, maxClasses: mc } = effectiveConfig;
     const exportData = {
       version: "1.0",
       exportedAt: new Date().toISOString(),
-      config: { startingPoints, gameLevel, maxClasses },
+      config: { startingPoints: sp, gameLevel: gl, maxClasses: mc },
       allocation: lastPayload.allocation,
       freePoint: lastPayload.freePoint,
       skillSelections: lastPayload.skillSelections,
@@ -60,7 +61,7 @@ export function CreatorPage() {
     a.download = `master-build-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [lastPayload, buildResult, startingPoints, gameLevel, maxClasses]);
+  }, [lastPayload, buildResult, effectiveConfig]);
 
   const handleReset = useCallback(() => {
     setPhase("config");
