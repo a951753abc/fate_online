@@ -1674,6 +1674,12 @@
   border-radius: var(--r-md);
 }
 
+.mc-comp-selected-top {
+  background: rgba(200, 169, 110, 0.12);
+  border: 1px solid var(--gold-dim);
+  margin-bottom: 12px;
+}
+
 .mc-comp-selected-label {
   font-size: 0.82rem;
   font-weight: 600;

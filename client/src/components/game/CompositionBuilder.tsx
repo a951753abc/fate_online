@@ -207,6 +207,27 @@ export function CompositionBuilder({
         </div>
       )}
 
+      {/* Selected elements summary — prominent position above grid */}
+      {selectedElements.length > 0 && (
+        <div className="mc-comp-selected mc-comp-selected-top">
+          <div className="mc-comp-selected-label">已選要素：</div>
+          {selectedElements.map((entry, idx) => {
+            const def = elementMap.get(entry.elementSkillId);
+            const subDef = entry.subChoice ? subChoiceMap.get(entry.elementSkillId) : undefined;
+            const subLabel =
+              entry.subChoice && subDef
+                ? subDef.options.find((o) => o.value === entry.subChoice)?.label
+                : entry.subChoice;
+            return (
+              <span key={idx} className="mc-comp-selected-tag">
+                {def?.nameCht ?? entry.elementSkillId}
+                {subLabel && <span className="mc-comp-selected-sub">({subLabel})</span>}
+              </span>
+            );
+          })}
+        </div>
+      )}
+
       {/* Element selection */}
       <div className="mc-comp-elements">
         <div className="mc-comp-elements-label">
@@ -263,27 +284,6 @@ export function CompositionBuilder({
           >
             取消
           </button>
-        </div>
-      )}
-
-      {/* Selected elements summary */}
-      {selectedElements.length > 0 && (
-        <div className="mc-comp-selected">
-          <div className="mc-comp-selected-label">已選要素：</div>
-          {selectedElements.map((entry, idx) => {
-            const def = elementMap.get(entry.elementSkillId);
-            const subDef = entry.subChoice ? subChoiceMap.get(entry.elementSkillId) : undefined;
-            const subLabel =
-              entry.subChoice && subDef
-                ? subDef.options.find((o) => o.value === entry.subChoice)?.label
-                : entry.subChoice;
-            return (
-              <span key={idx} className="mc-comp-selected-tag">
-                {def?.nameCht ?? entry.elementSkillId}
-                {subLabel && <span className="mc-comp-selected-sub">({subLabel})</span>}
-              </span>
-            );
-          })}
         </div>
       )}
 
