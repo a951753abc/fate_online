@@ -8,7 +8,7 @@ import { CreatorPage } from "./pages/CreatorPage.js";
 export function App() {
   return (
     <SocketProvider>
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <Routes>
           <Route path="/" element={<LobbyPage />} />
           <Route path="/room/:code" element={<RoomPage />} />
