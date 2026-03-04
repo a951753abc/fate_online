@@ -29,37 +29,8 @@ import {
   buildInitPayloadForPlayer,
 } from "../game/initializeGame.js";
 import { initializePrep } from "../game/prepManager.js";
-import { getAvailableLevels, DEFAULT_LEVEL_CONFIG } from "../game/character/masterLevels.js";
-import {
-  buildAllClassSkillViews,
-  buildAllClassAcquisitionViews,
-  buildMysticCodeViews,
-  buildFamiliarOptionViews,
-  buildElementSubChoiceViews,
-} from "../game/character/skills/prepSkillDataBuilder.js";
+import { PREP_CONFIG } from "../game/prepConfig.js";
 import type { NightState } from "../game/types.js";
-import type { PrepConfig, MasterLevelView } from "../shared/protocol.js";
-
-// Static prep config — same for every game, compute once at module load
-const PREP_CONFIG: PrepConfig = Object.freeze({
-  startingPoints: DEFAULT_LEVEL_CONFIG.startingPoints,
-  gameLevel: DEFAULT_LEVEL_CONFIG.gameLevel,
-  maxClasses: DEFAULT_LEVEL_CONFIG.maxClasses,
-  availableLevels: Object.freeze(
-    getAvailableLevels().map((def) =>
-      Object.freeze({
-        id: def.id,
-        nameJa: def.nameJa,
-        baseStats: def.baseStats,
-      }),
-    ),
-  ) as readonly MasterLevelView[],
-  classSkills: buildAllClassSkillViews(),
-  classAcquisitions: buildAllClassAcquisitionViews(),
-  mysticCodes: buildMysticCodeViews(),
-  familiarOptions: buildFamiliarOptionViews(),
-  elementSubChoices: buildElementSubChoiceViews(),
-});
 
 // Track disconnect timers for reconnection grace period
 const disconnectTimers = new Map<string, NodeJS.Timeout>();

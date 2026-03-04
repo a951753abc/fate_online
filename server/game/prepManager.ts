@@ -4,14 +4,14 @@ import type { AbilityStatKey, LevelAllocation, MasterLevelId } from "./character
 import type { ComputedStats } from "./character/masterTypes.js";
 import type { PrepPlayerState, PrepStatus, SkillSelectionPayload } from "../shared/protocol.js";
 import type { SkillSelection, SkillInstanceConfig } from "./character/skills/types.js";
-import { validateAllocation, computeAllStats } from "./character/masterStats.js";
+import { computeAllStats } from "./character/masterStats.js";
 import { DEFAULT_LEVEL_CONFIG } from "./character/masterLevels.js";
-import { validateSkillSelection } from "./character/skills/skillValidation.js";
 import {
   getClassSkillAcquisition,
   computeExpectedSkillCount,
 } from "./character/skills/acquisitionRules.js";
 import { getClassNormalSkills, findSkillDef } from "./character/skills/index.js";
+import { validateAndComputeBuild } from "./prepValidation.js";
 
 // Redis key helpers
 const prepKey = (code: string) => `game:${code}:prep`;
@@ -215,59 +215,12 @@ export async function submitMasterBuild(
     return Object.freeze({ success: false, error: "角色已確認就緒，無法修改" });
   }
 
-  // Validate allocation total = gameLevel (starting + upgrade combined)
-  const validationError = validateAllocation(allocation);
-  if (validationError) {
-    return Object.freeze({ success: false, error: validationError });
+  // Validate + compute via pure function
+  const buildResult = validateAndComputeBuild(allocation, freePoint, skillSelections);
+  if (!buildResult.success) {
+    return Object.freeze({ success: false, error: buildResult.error });
   }
-
-  // Validate skill selections match allocation
-  const allocMap = new Map<string, number>(allocation.map((a) => [a.levelId, a.level]));
-  if (skillSelections.length !== allocation.length) {
-    return Object.freeze({
-      success: false,
-      error: `技能選擇數量不符：需要 ${allocation.length} 個級別，但收到 ${skillSelections.length} 個`,
-    });
-  }
-
-  for (const sel of skillSelections) {
-    if (!allocMap.has(sel.classId)) {
-      return Object.freeze({
-        success: false,
-        error: `技能選擇的級別 ${sel.classId} 不在等級配置中`,
-      });
-    }
-
-    // Validate class level matches allocation
-    const allocLevel = allocMap.get(sel.classId)!;
-    if (sel.classLevel !== allocLevel) {
-      return Object.freeze({
-        success: false,
-        error: `技能選擇的等級不符：${sel.classId} 應為 LV${allocLevel}，但收到 LV${sel.classLevel}`,
-      });
-    }
-
-    // Validate skill selection using the existing validation system
-    const classId = sel.classId as MasterLevelId;
-    const skillValidation = validateSkillSelection({
-      classId,
-      classLevel: sel.classLevel,
-      selectedSkillIds: sel.selectedSkillIds,
-      skillConfigs: sel.skillConfigs as unknown as
-        | Readonly<Record<string, readonly SkillInstanceConfig[]>>
-        | undefined,
-    });
-    if (!skillValidation.valid) {
-      const firstError = skillValidation.errors[0];
-      return Object.freeze({
-        success: false,
-        error: `技能驗證失敗（${sel.classId}）：${firstError.message}`,
-      });
-    }
-  }
-
-  // Compute stats
-  const stats = computeAllStats(allocation, freePoint);
+  const stats = buildResult.stats!;
 
   // Build SkillSelection array
   const validatedSelections: readonly SkillSelection[] = Object.freeze(

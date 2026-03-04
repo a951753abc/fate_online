@@ -9,6 +9,7 @@ import { connectRedis, closeRedis } from "./db/redis.js";
 import { connectPostgres, closePostgres } from "./db/postgres.js";
 import { setupSocketHandler } from "./socket/handler.js";
 import { healthHandler } from "./api/health.js";
+import { creatorConfigHandler, creatorSubmitHandler } from "./api/creatorRoutes.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -32,6 +33,8 @@ app.use(express.json());
 
 // API routes
 app.get("/api/health", healthHandler);
+app.get("/api/creator/config", creatorConfigHandler);
+app.post("/api/creator/submit", creatorSubmitHandler);
 
 // Serve static client in production
 if (!config.isDev) {
